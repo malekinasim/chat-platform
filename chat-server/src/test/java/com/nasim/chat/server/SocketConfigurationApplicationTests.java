@@ -1,0 +1,13 @@
+package com.nasim.chat.server;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class SocketConfigurationApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
