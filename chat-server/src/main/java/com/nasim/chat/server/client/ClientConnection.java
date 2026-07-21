@@ -1,6 +1,6 @@
 package com.nasim.chat.server.client;
 
-import lombok.Getter;
+
 import com.nasim.chat.model.ChatMessage;
 
 
@@ -16,10 +16,8 @@ public class ClientConnection implements Closeable {
 
     private final SocketChannel socketChannel;
 
-    @Getter
     private final InetSocketAddress inetSocketAddress;
 
-    @Getter
     private final String id;
 
     private final ObjectOutputStream output;
@@ -66,6 +64,14 @@ public class ClientConnection implements Closeable {
         }
 
         return message;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public InetSocketAddress getInetSocketAddress() {
+        return inetSocketAddress;
     }
 
     @Override
