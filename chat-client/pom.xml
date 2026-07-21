@@ -8,8 +8,8 @@
 		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>nasim.com.example</groupId>
-	<artifactId>chatClient</artifactId>
+	<groupId>com.nasim.chat</groupId>
+	<artifactId>chat-client</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name/>
