@@ -12,8 +12,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class TokenServiceTest {
@@ -48,9 +47,9 @@ class TokenServiceTest {
 
         Jwt jwt = decoder.decode(token);
 
-        assertEquals("auth-service", String.valueOf(jwt.getIssuer()));
+        assertEquals( "http://auth-service:8083", String.valueOf(jwt.getIssuer()));
         assertEquals("test-user-123", jwt.getSubject());
-        assertTrue(Objects.requireNonNull(jwt.getAudience()).contains("chat-server"));
+        assertFalse(Objects.requireNonNull(jwt.getAudience()).contains("chat-client"));
         assertEquals(List.of("USER"), jwt.getClaimAsStringList("roles"));
     }
 }

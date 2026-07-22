@@ -5,4 +5,4 @@ security:
   jwt:
     private-key-file: "file:../dev-keys/private.pem"
     public-key-file: "file:../dev-keys/public.pem"
-    issuer: "https://auth.chat-platform.local"
+    issuer: http://auth-service:8083

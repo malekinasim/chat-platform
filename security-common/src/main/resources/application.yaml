@@ -1,3 +1,6 @@
 spring:
   application:
     name: security-common
+security:
+  jwt:
+    issuer: http://auth-service:8083

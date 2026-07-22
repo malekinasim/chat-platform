@@ -5,3 +5,9 @@ chat:
 
 server:
   port: ${SERVER_PORT:8082}
+
+# chat-client
+security:
+  jwt:
+    issuer: http://auth-service:8083
+    audience: chat-client

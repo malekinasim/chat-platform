@@ -1,6 +1,7 @@
 package com.nasim.chat.security;
 
 
+import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
