@@ -13,22 +13,20 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 import java.io.IOException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 @Configuration(proxyBeanMethods = false)
 public class JwtKeyConfiguration {
       @Bean
-       public RSAPrivateKey jwtPrivateKey(@Value("${security.jwt.private-key}")
+       public RSAPrivateKey jwtPrivateKey(@Value("${security.jwt.private-key-file}")
                                              Resource privateKeyResource) throws IOException {
             return RsaKeyConverters.pkcs8().convert(
                     privateKeyResource.getInputStream()
             );
       }
     @Bean
-    public RSAPublicKey jwtPublicKey(@Value("${security.jwt.public-key}")
+    public RSAPublicKey jwtPublicKey(@Value("${security.jwt.public-key-file}")
                                     Resource publicKeyResource) throws IOException {
         return RsaKeyConverters.x509().convert(publicKeyResource.getInputStream());
     }
