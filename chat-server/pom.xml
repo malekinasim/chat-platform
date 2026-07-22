@@ -41,6 +41,12 @@
 			<artifactId>jakarta.websocket-api</artifactId>
 			<version>2.2.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.nasim.chat</groupId>
+			<artifactId>security-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<finalName>chat-server</finalName>

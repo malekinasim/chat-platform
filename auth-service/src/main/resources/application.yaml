@@ -1,3 +1,7 @@
 spring:
   application:
     name: auth-service
+security:
+  jwt:
+    private-key: ../dev-keys/private.pem
+    public-key: ../dev-keys/public.pem

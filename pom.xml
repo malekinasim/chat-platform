@@ -28,6 +28,7 @@
         <module>auth-service</module>
         <module>chat-client</module>
         <module>chat-server</module>
+        <module>security-common</module>
     </modules>
 
 </project>

@@ -1,0 +1,40 @@
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
+    image: chat-platform/auth-service:local
+    container_name: auth-service
+    environment:
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+  chat-server:
+    build:
+      context: .
+      dockerfile: chat-server/Dockerfile
+    image: chat-platform/chat-server:local
+    container_name: chat-server
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      CHAT_SERVER_PORT: 8080
+      SERVER_PORT: 8081
+    depends_on:
+      - auth-service
+  chat-client:
+    build:
+      context: .
+      dockerfile: chat-client/Dockerfile
+    image: chat-platform/chat-client:local
+    container_name: chat-client
+    ports:
+      - "8082:8082"
+    environment:
+      CHAT_SERVER_HOST: chat-server
+      CHAT_SERVER_PORT: 8080
+      SERVER_PORT: 8082
+    depends_on:
+      - chat-server
+      - auth-service

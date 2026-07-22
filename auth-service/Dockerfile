@@ -9,17 +9,17 @@ COPY mvnw ./
 
 # Parent and Auth Service POMs
 COPY pom.xml ./
-COPY chat-server/pom.xml chat-server/pom.xml
+COPY auth-service/pom.xml auth-service/pom.xml
 
 RUN chmod +x mvnw
 
 # Download dependencies separately for Docker layer caching
-RUN ./mvnw -f chat-server/pom.xml dependency:go-offline
+RUN ./mvnw -f auth-service/pom.xml dependency:go-offline
 
 # Copy only the Auth Service source code
-COPY chat-server/src chat-server/src
+COPY auth-service/src auth-service/src
 
-RUN ./mvnw -f chat-server/pom.xml clean package -DskipTests
+RUN ./mvnw -f auth-service/pom.xml clean package -DskipTests
 
 
 # Runtime stage
@@ -28,7 +28,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 COPY --from=build \
-    /app/chat-server/target/chat-server.jar \
+    /app/auth-service/target/auth-service.jar \
     app.jar
 
 EXPOSE 8083
