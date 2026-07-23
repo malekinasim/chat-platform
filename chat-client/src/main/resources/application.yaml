@@ -9,5 +9,6 @@ server:
 # chat-client
 security:
   jwt:
-    issuer: http://auth-service:8083
+    public-key-file: "file:../dev-keys/public.pem"
     audience: chat-client
+    issuer: http://auth-service:8083

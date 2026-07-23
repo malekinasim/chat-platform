@@ -45,6 +45,11 @@
 			<artifactId>security-common</artifactId>
 			<version>${project.version}</version>
 	    </dependency>
+		<dependency>
+			<groupId>com.nasim.chat</groupId>
+			<artifactId>chat-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>chat-client</finalName>

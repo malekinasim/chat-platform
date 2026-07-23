@@ -115,7 +115,7 @@ class TokenServiceTest {
 
         JwtDecoder decoder = JwtDecoders.create(
                 jwtPublicKey,
-                "http://wrong-auth-service:8083",
+                "http://auth-service:8083",
                 "chat-client"
         );
         JwtValidationException exception= assertThrows(
