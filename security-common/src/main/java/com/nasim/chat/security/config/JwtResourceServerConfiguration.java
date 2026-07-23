@@ -1,11 +1,11 @@
 package com.nasim.chat.security.config;
 
 
-
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import com.nasim.chat.security.jwt.resolver.CookieBearerTokenResolver;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,15 +15,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-
 import java.security.interfaces.RSAPublicKey;
+
 
 @Configuration(proxyBeanMethods = false)
 public class JwtResourceServerConfiguration {
 
     @Bean
-    public JwtRoleConverter jwtRoleConverter(){
-        return  new JwtRoleConverter();
+    public JwtRoleConverter jwtRoleConverter() {
+        return new JwtRoleConverter();
     }
 
 
@@ -55,25 +55,39 @@ public class JwtResourceServerConfiguration {
     }
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter(){
-        JwtAuthenticationConverter converter=new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(this.jwtRoleConverter());
+    public JwtAuthenticationConverter jwtAuthenticationConverter(
+            JwtRoleConverter jwtRoleConverter) {
+
+        JwtAuthenticationConverter converter =
+                new JwtAuthenticationConverter();
+
+        converter.setJwtGrantedAuthoritiesConverter(jwtRoleConverter);
+
         return converter;
+    }
+    ResourceServerAuthorizationRules defaultAuthorizationRules() {
+        return authorize -> {
+            // No public or role-specific endpoints by default.
+
+        };
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
+    public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http,
             JwtDecoder jwtDecoder,
             BearerTokenResolver bearerTokenResolver,
             JwtAuthenticationConverter jwtAuthenticationConverter,
-            ResourceServerAuthorizationRules authorizationRules)
+            ObjectProvider<ResourceServerAuthorizationRules> rulesProvider)
             throws Exception {
 
-         http.authorizeHttpRequests(authorize -> {
-            authorizationRules.configure(authorize);
-            authorize.anyRequest().authenticated();
-        })
+        ResourceServerAuthorizationRules rules =
+                rulesProvider.getIfAvailable(this::defaultAuthorizationRules);
+
+        http.authorizeHttpRequests(authorize -> {
+                    rules.configure(authorize);
+                    authorize.anyRequest().authenticated();
+                })
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .bearerTokenResolver(bearerTokenResolver)
                         .jwt(jwt -> jwt
