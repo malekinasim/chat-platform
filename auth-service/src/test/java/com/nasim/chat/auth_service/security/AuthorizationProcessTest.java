@@ -121,10 +121,10 @@ public class AuthorizationProcessTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
     @Test
-    void InValidAdminTokenShouldAccessAdminEndpoint() {
+    void InValidAdminTokenShouldAccessAdminPresAuthEndpoint() {
 
         String token = tokenService.generateAccessToken(
-                "test-admin-123",
+                "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
         );
@@ -136,11 +136,35 @@ public class AuthorizationProcessTest {
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
-        UriComponents uriComponents = UriComponentsBuilder.fromUriString(BASE_URL+"/api/admin/rooms").build();
+        UriComponents uriComponents = UriComponentsBuilder.fromUriString(BASE_URL+"/api/test/rooms").build();
 
         ResponseEntity<String> response =
                 template.exchange(uriComponents.toUri(), GET, request, String.class);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
+    void validAdminTokenShouldAccessAdminPresAuthEndpoint() {
+
+        String token = tokenService.generateAccessToken(
+                "test-admin-123",
+                List.of("ADMIN"),
+                List.of("chat-client")
+        );
+
+        TestRestTemplate template = new TestRestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        UriComponents uriComponents = UriComponentsBuilder.fromUriString(BASE_URL+"/api/test/rooms").build();
+
+        ResponseEntity<String> response =
+                template.exchange(uriComponents.toUri(), GET, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

@@ -3,7 +3,6 @@ package com.nasim.chat.client.security;
 import com.nasim.chat.security.config.ResourceServerAuthorizationRules;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 @Configuration
 public class ChatClientAuthorizationConfiguration {
 

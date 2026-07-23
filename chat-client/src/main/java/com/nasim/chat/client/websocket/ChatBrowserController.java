@@ -48,6 +48,6 @@ public class ChatBrowserController {
     @GetMapping("/api/test/rooms")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> test(Principal principal) {
-        return new ResponseEntity<>(List.of("test1","test2","test3"), HttpStatus.OK);
+        return ResponseEntity.ok(List.of("test1", "test2", "test3"));
     }
 }
