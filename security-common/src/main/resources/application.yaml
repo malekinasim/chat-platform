@@ -4,3 +4,5 @@ spring:
 security:
   jwt:
     issuer: http://auth-service:8083
+
+

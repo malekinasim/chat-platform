@@ -1,6 +1,7 @@
 package com.nasim.chat.security.config;
 
 
+import com.nasim.chat.security.JwtSecurityProperties;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import com.nasim.chat.security.jwt.decoder.JwtDecoders;
@@ -9,12 +10,16 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 
 
@@ -40,17 +45,19 @@ public class JwtResourceServerConfiguration {
                 cookieResolver
         );
     }
+    @Bean
+    public RSAPublicKey jwtPublicKey(JwtSecurityProperties properties) throws IOException {
+        return RsaKeyConverters.x509()
+                .convert(properties.getPublicKeyResource().getInputStream());
+    }
 
     @Bean
-    public JwtDecoder jwtDecoder(
-            RSAPublicKey jwtPublicKey,
-            @Value("${security.jwt.issuer}") String issuer,
-            @Value("${security.jwt.audience}") String audience) {
+    public JwtDecoder jwtDecoder(RSAPublicKey jwtPublicKey ,
+                                 JwtSecurityProperties properties) {
 
         return JwtDecoders.create(
                 jwtPublicKey,
-                issuer,
-                audience
+                properties
         );
     }
 

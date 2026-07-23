@@ -11,3 +11,4 @@ security:
   jwt:
     issuer: http://auth-service:8083
     audience: chat-client
+    public-key-file: "file:../dev-keys/public.pem"
