@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,11 @@ public class ChatBrowserController {
     }
     @GetMapping("/api/admin/rooms")
     public ResponseEntity<?> sendAllRoomList(Principal principal) {
+        return new ResponseEntity<>(List.of("test1","test2","test3"), HttpStatus.OK);
+    }
+    @GetMapping("/api/test/rooms")
+    @PreAuthorize("hasRole(ADMIN)")
+    public ResponseEntity<?> test(Principal principal) {
         return new ResponseEntity<>(List.of("test1","test2","test3"), HttpStatus.OK);
     }
 }

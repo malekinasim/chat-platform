@@ -13,7 +13,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-
 import java.time.Instant;
 import java.util.List;
 
@@ -22,7 +21,7 @@ import static org.springframework.http.HttpMethod.*;
 
 @SpringBootTest
 public class AuthorizationProcessTest {
-    private final String BASE_URL="http://chat-client:8082";
+    private final String BASE_URL="http://localhost:8082";
 
     @Autowired
     private TokenService tokenService;
@@ -96,5 +95,52 @@ public class AuthorizationProcessTest {
         ResponseEntity<String> responseEntity=template.exchange(uriComponents.toUri(), GET,httpEntity,String.class);
         assertEquals(HttpStatus.UNAUTHORIZED,responseEntity.getStatusCode());
 
+    }
+
+    @Test
+    void validAdminTokenShouldAccessAdminEndpoint() {
+
+        String token = tokenService.generateAccessToken(
+                "test-admin-123",
+                List.of("ADMIN"),
+                List.of("chat-client")
+        );
+
+        TestRestTemplate template = new TestRestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        UriComponents uriComponents = UriComponentsBuilder.fromUriString(BASE_URL+"/api/admin/rooms").build();
+
+        ResponseEntity<String> response =
+                template.exchange(uriComponents.toUri(), GET, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+    @Test
+    void InValidAdminTokenShouldAccessAdminEndpoint() {
+
+        String token = tokenService.generateAccessToken(
+                "test-admin-123",
+                List.of("USER"),
+                List.of("chat-client")
+        );
+
+        TestRestTemplate template = new TestRestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        UriComponents uriComponents = UriComponentsBuilder.fromUriString(BASE_URL+"/api/admin/rooms").build();
+
+        ResponseEntity<String> response =
+                template.exchange(uriComponents.toUri(), GET, request, String.class);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 }
