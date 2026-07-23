@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import(JwtResourceServerConfiguration.class)
+@Import({JwtResourceServerConfiguration.class,})
 public class ChatClientApplication {
 
 	public static void main(String[] args) {

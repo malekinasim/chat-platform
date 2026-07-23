@@ -1,6 +1,5 @@
 package com.nasim.chat.security.jwt.decoder;
 
-import com.nasim.chat.security.JwtSecurityProperties;
 import com.nasim.chat.security.jwt.validators.JwtAudienceValidator;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -18,16 +17,15 @@ public final class JwtDecoders {
 
     public static JwtDecoder create(
             RSAPublicKey publicKey,
-            JwtSecurityProperties properties) {
+            String issuer,String allowedAudience) {
 
         NimbusJwtDecoder decoder =
                 NimbusJwtDecoder.withPublicKey(publicKey).build();
 
         OAuth2TokenValidator<Jwt>  defaultWithIssuer= JwtValidators
-                .createDefaultWithIssuer(properties.getIssuer());
+                .createDefaultWithIssuer(issuer);
 
-        OAuth2TokenValidator<Jwt> audValidator=new JwtAudienceValidator(properties
-                .getAudience());
+        OAuth2TokenValidator<Jwt> audValidator=new JwtAudienceValidator(allowedAudience);
         OAuth2TokenValidator<Jwt> validatorChain=new DelegatingOAuth2TokenValidator<>(
               defaultWithIssuer,
               audValidator

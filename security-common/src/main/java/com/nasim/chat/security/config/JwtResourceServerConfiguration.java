@@ -1,7 +1,5 @@
 package com.nasim.chat.security.config;
 
-
-import com.nasim.chat.security.JwtSecurityProperties;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import com.nasim.chat.security.jwt.decoder.JwtDecoders;
@@ -45,19 +43,21 @@ public class JwtResourceServerConfiguration {
                 cookieResolver
         );
     }
+
     @Bean
-    public RSAPublicKey jwtPublicKey(JwtSecurityProperties properties) throws IOException {
+    public RSAPublicKey jwtPublicKey(@Value("${security.jwt.public-key-file}") Resource publicKeyResource) throws IOException {
         return RsaKeyConverters.x509()
-                .convert(properties.getPublicKeyResource().getInputStream());
+                .convert(publicKeyResource.getInputStream());
     }
 
     @Bean
     public JwtDecoder jwtDecoder(RSAPublicKey jwtPublicKey ,
-                                 JwtSecurityProperties properties) {
+                                 @Value("${security.jwt.issuer}") String issuer,
+                                 @Value("${security.jwt.audience}") String audience) {
 
         return JwtDecoders.create(
                 jwtPublicKey,
-                properties
+                issuer,audience
         );
     }
 
