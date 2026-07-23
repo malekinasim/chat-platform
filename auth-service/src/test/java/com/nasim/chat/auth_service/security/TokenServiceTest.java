@@ -27,7 +27,7 @@ class TokenServiceTest {
         String token = tokenService.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
-                List.of("chat_client")
+                List.of("chat-client")
         );
 
         System.out.println(token);
@@ -38,7 +38,7 @@ class TokenServiceTest {
         String token = tokenService.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
-                List.of("chat_client")
+                List.of("chat-client")
         );
 
         JwtDecoder decoder = NimbusJwtDecoder
@@ -49,7 +49,7 @@ class TokenServiceTest {
 
         assertEquals( "http://auth-service:8083", String.valueOf(jwt.getIssuer()));
         assertEquals("test-user-123", jwt.getSubject());
-        assertFalse(Objects.requireNonNull(jwt.getAudience()).contains("chat-client"));
+        assertTrue(Objects.requireNonNull(jwt.getAudience()).contains("chat-client"));
         assertEquals(List.of("USER"), jwt.getClaimAsStringList("roles"));
     }
 }
