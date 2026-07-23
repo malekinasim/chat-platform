@@ -105,8 +105,8 @@ class TokenServiceTest {
                 .issuer("http://auth-service:8083")
                 .subject("test-user-123")
                 .audience(List.of("chat-client"))
-                .issuedAt(now.minusSeconds(300))
-                .expiresAt(now.minusSeconds(120))
+                .issuedAt(now.minusSeconds(200))
+                .expiresAt(now.minusSeconds(100))
                 .claim("roles", List.of("USER"))
                 .build();
         String expiredToken = jwtEncoder
@@ -122,6 +122,6 @@ class TokenServiceTest {
                 JwtValidationException.class,
                 () -> decoder.decode(expiredToken)
         );
-        System.out.println(exception.getMessage());
+        System.out.println(exception.getMessage()+" now "+Instant.now());
     }
 }
