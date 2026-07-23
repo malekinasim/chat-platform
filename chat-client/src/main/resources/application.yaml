@@ -11,6 +11,3 @@ security:
   jwt:
     issuer: http://auth-service:8083
     audience: chat-client
-app:
-  security:
-    token-transport: HEADER_THEN_COOKIE
