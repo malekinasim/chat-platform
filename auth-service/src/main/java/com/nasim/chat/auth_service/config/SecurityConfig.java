@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final OidcLoginSuccessHandler oidcLoginSuccessHandler;
+
+    public SecurityConfig(OidcLoginSuccessHandler oidcLoginSuccessHandler) {
+        this.oidcLoginSuccessHandler = oidcLoginSuccessHandler;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain( HttpSecurity http){
        return http.authorizeHttpRequests(
@@ -22,7 +28,9 @@ public class SecurityConfig {
                                 "/oauth2/**").permitAll()
                                 .anyRequest().authenticated()
 
-        ).oauth2Login(Customizer.withDefaults())
+        ).oauth2Login(oauth2 -> oauth2
+                       .successHandler(oidcLoginSuccessHandler)
+               )
                 .build();
     }
 }
