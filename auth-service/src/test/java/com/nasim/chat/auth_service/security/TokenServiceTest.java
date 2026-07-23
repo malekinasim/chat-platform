@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-
+import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Objects;
@@ -40,10 +40,13 @@ class TokenServiceTest {
                 List.of("USER"),
                 List.of("chat-client")
         );
+       JwtDecoder decoder= JwtDecoders.create(
+                jwtPublicKey,
+                "http://auth-service:8083",
+                "chat-client"
+        );
 
-        JwtDecoder decoder = NimbusJwtDecoder
-                .withPublicKey(jwtPublicKey)
-                .build();
+
 
         Jwt jwt = decoder.decode(token);
 
