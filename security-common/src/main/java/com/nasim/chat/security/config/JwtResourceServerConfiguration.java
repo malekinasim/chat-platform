@@ -107,6 +107,4 @@ public class JwtResourceServerConfiguration {
 
         return http.build();
     }
-
-
 }
