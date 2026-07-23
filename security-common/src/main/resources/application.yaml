@@ -4,5 +4,5 @@ spring:
 security:
   jwt:
     issuer: http://auth-service:8083
-
+    public-key-file: "file:../dev-keys/public.pem"
 
