@@ -13,7 +13,7 @@ import java.util.UUID;
 })
 @Getter
 @Setter
-public class Roles extends BaseEntity<UUID> {
+public class Roles extends BaseEntity<Integer> {
     @Column(name = "name",nullable = false,length = 50)
     private String name;
     @Column(name = "description",length = 500)

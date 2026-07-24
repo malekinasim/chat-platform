@@ -11,7 +11,7 @@ import java.util.UUID;
 @Table(name ="app_users" )
 @Getter
 @Setter
-public class AppUsers extends BaseEntity<UUID>{
+public class AppUsers extends BaseEntity<Long>{
     @Column(name = "email", length = 320)
     private String email;
 

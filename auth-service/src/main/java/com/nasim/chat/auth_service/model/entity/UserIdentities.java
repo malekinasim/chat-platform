@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
-
+@Entity
 @Table(name = "user_identities",uniqueConstraints={
         @UniqueConstraint(name="uk_identity_issuer_subject",
                 columnNames = {"issuer","subject"})
@@ -13,7 +13,7 @@ import java.util.UUID;
 )
 @Getter
 @Setter
-public class UserIdentities extends BaseEntity<UUID> {
+public class UserIdentities extends BaseEntity<Long> {
 
     @Column(name = "issuer",nullable = false,length = 500)
     private String issuer;

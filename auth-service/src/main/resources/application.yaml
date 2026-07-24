@@ -14,22 +14,22 @@ spring:
               - openid
               - profile
               - email
-security:
-  jwt:
-    private-key-file: "file:../dev-keys/private.pem"
-    public-key-file: "file:../dev-keys/public.pem"
-    issuer: http://auth-service:8083
-
-datasource:
-    url: {SPRING_DATASOURCE_URL:jdbc:postgresql://auth-database:5432/${POSTGRES_DB:auth_db}}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://auth-database:5432/${ POSTGRES_DB:auth_db } }
     username: ${SPRING_DATASOURCE_USERNAME:auth_user}
     password: ${SPRING_DATASOURCE_PASSWORD:auth_password}
     driver-class-name: org.postgresql.Driver
 
-jpa:
+  jpa:
     hibernate:
       ddl-auto: update
       show-sql: true
     properties:
       hibernate:
         format_sql: true
+security:
+  jwt:
+    private-key-file: "file:../dev-keys/private.pem"
+    public-key-file: "file:../dev-keys/public.pem"
+    issuer: http://auth-service:8083
+
