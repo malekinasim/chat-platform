@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
 @Entity
 @Table(name = "user_identities",uniqueConstraints={
         @UniqueConstraint(name="uk_identity_issuer_subject",
@@ -13,7 +12,7 @@ import java.util.UUID;
 )
 @Getter
 @Setter
-public class UserIdentities extends BaseEntity<Long> {
+public class UserIdentity extends BaseEntity<Long> {
 
     @Column(name = "issuer",nullable = false,length = 500)
     private String issuer;
@@ -23,7 +22,7 @@ public class UserIdentities extends BaseEntity<Long> {
     private String provider;
     @Column(name = "provider_email",length = 320)
     private String providerEmail;
-    @ManyToOne(targetEntity = AppUsers.class,fetch = FetchType.LAZY,optional = false)
+    @ManyToOne(targetEntity = AppUser.class,fetch = FetchType.LAZY,optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private AppUsers appUsers;
+    private AppUser appUser;
 }
