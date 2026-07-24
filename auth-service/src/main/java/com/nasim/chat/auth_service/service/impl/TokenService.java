@@ -1,13 +1,11 @@
-package com.nasim.chat.auth_service.service;
+package com.nasim.chat.auth_service.service.impl;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;

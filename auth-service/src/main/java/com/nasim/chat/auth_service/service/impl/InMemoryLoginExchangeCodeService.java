@@ -1,7 +1,8 @@
-package com.nasim.chat.auth_service.service;
+package com.nasim.chat.auth_service.service.impl;
 
 import com.nasim.chat.auth_service.exceptions.InvalidExchangeCodeException;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
+import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
 
 import java.security.SecureRandom;
 import java.time.Instant;
