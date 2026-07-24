@@ -3,7 +3,7 @@ package com.nasim.chat.auth_service.handler;
 
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
-import com.nasim.chat.auth_service.model.InternalUser;
+import com.nasim.chat.auth_service.model.dto.InternalUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

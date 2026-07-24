@@ -1,14 +1,33 @@
 services:
+  auth-database:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-database-data:/var/lib/postgresql/data
+  pgAdmin:
+    image: dpage/pgadmin4
+    depends_on:
+      - auth-database
   auth-service:
     build:
       context: .
       dockerfile: auth-service/Dockerfile
     image: chat-platform/auth-service:local
     container_name: auth-service
-    environment:
-      SERVER_PORT: 8083
     ports:
       - "8083:8083"
+    depends_on:
+      - auth-database
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-database:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: auth_user
+      SPRING_DATASOURCE_PASSWORD: local_password
   chat-server:
     build:
       context: .

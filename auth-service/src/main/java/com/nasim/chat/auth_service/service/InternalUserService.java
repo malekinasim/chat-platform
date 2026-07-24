@@ -1,6 +1,6 @@
 package com.nasim.chat.auth_service.service;
 
-import com.nasim.chat.auth_service.model.InternalUser;
+import com.nasim.chat.auth_service.model.dto.InternalUser;
 
 public interface InternalUserService {
 

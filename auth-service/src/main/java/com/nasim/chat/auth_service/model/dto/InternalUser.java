@@ -1,4 +1,4 @@
-package com.nasim.chat.auth_service.model;
+package com.nasim.chat.auth_service.model.dto;
 
 import java.util.List;
 
