@@ -32,3 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 /dev-keys/private.pem
+
+google_identity_Key.json
