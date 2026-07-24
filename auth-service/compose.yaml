@@ -41,5 +41,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: auth_password
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    volumes:
+      - ./dev-keys:/dev-keys:ro
+
 volumes:
   auth-database-data:

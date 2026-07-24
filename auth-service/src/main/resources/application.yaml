@@ -29,7 +29,7 @@ spring:
         format_sql: true
 security:
   jwt:
-    private-key-file: "file:../dev-keys/private.pem"
-    public-key-file: "file:../dev-keys/public.pem"
+    public-key-file: file:../dev-keys/public.pem
+    private-key-file: file:../dev-keys/private.pem
     issuer: http://auth-service:8083
 
