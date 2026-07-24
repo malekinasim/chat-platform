@@ -10,16 +10,20 @@ COPY mvnw ./
 # Parent and Auth Service POMs
 COPY pom.xml ./
 COPY auth-service/pom.xml auth-service/pom.xml
+COPY chat-client/pom.xml chat-client/pom.xml
+COPY chat-server/pom.xml chat-server/pom.xml
+COPY security-common/pom.xml security-common/pom.xml
 
 RUN chmod +x mvnw
 
-# Download dependencies separately for Docker layer caching
-RUN ./mvnw -f auth-service/pom.xml dependency:go-offline
+# Download dependencies for Docker layer caching
+RUN ./mvnw -B -pl auth-service -am dependency:go-offline
 
 # Copy only the Auth Service source code
 COPY auth-service/src auth-service/src
+COPY security-common/src security-common/src
 
-RUN ./mvnw -f auth-service/pom.xml clean package -DskipTests
+RUN ./mvnw -B -pl auth-service -am clean package -DskipTests
 
 
 # Runtime stage
