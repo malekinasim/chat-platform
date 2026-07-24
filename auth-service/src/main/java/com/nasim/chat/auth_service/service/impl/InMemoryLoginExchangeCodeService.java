@@ -3,6 +3,7 @@ package com.nasim.chat.auth_service.service.impl;
 import com.nasim.chat.auth_service.exceptions.InvalidExchangeCodeException;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
+import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Service
 public class InMemoryLoginExchangeCodeService implements LoginExchangeCodeService {
     private final Map<String, LoginExchangeCode> exchangeCodes = new ConcurrentHashMap<>();
     private final SecureRandom secureRandom = new SecureRandom();
