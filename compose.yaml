@@ -27,7 +27,7 @@ services:
       SERVER_PORT: 8083
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-database:5432/auth_db
       SPRING_DATASOURCE_USERNAME: auth_user
-      SPRING_DATASOURCE_PASSWORD: local_password
+      SPRING_DATASOURCE_PASSWORD: auth_password
   chat-server:
     build:
       context: .
