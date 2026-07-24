@@ -34,3 +34,5 @@ build/
 /dev-keys/private.pem
 
 google_identity_Key.json
+.env
+**/.env

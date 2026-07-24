@@ -1,7 +1,7 @@
 package com.nasim.chat.auth_service.security;
 
 
-chimport com.nasim.chat.auth_service.service.impl.TokenService;
+import com.nasim.chat.auth_service.service.impl.TokenService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
