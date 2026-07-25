@@ -1,19 +1,25 @@
 services:
   auth-database:
     image: postgres:17
+    container_name: auth-database
+
     environment:
       POSTGRES_DB: auth_db
-      POSTGRES_USER: auth_user
-      POSTGRES_PASSWORD: auth_password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - auth-database-data:/var/lib/postgresql/data
+
     ports:
-      - "5432:5432"
+      - "5433:5432"
+
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U auth_user -d auth_db" ]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 5s
       retries: 10
-    volumes:
-      - auth-database-data:/var/lib/postgresql/data
+      start_period: 10s
   pgAdmin:
     image: dpage/pgadmin4
     environment:
@@ -28,21 +34,33 @@ services:
     build:
       context: ..
       dockerfile: auth-service/Dockerfile
+
     image: chat-platform/auth-service:local
     container_name: auth-service
-    ports:
-      - "8083:8083"
-    depends_on:
-      - auth-database
+
     environment:
       SERVER_PORT: 8083
+
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-database:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: auth_user
-      SPRING_DATASOURCE_PASSWORD: auth_password
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
+      SECURITY_JWT_PUBLIC_KEY_FILE: file:/dev-keys/public.pem
+      SECURITY_JWT_PRIVATE_KEY_FILE: file:/dev-keys/private.pem
+      SECURITY_JWT_ISSUER: http://auth-service:8083
+
     volumes:
-      - ./dev-keys:/dev-keys:ro
+      - ../dev-keys:/dev-keys:ro
+
+    ports:
+      - "8083:8083"
+
+    depends_on:
+      auth-database:
+        condition: service_healthy
 
 volumes:
   auth-database-data:
