@@ -3,19 +3,23 @@ package com.nasim.chat.auth_service.handler;
 
 import com.nasim.chat.auth_service.model.dto.AuthenticationResolution;
 import com.nasim.chat.auth_service.model.dto.AuthenticationStatus;
+import com.nasim.chat.auth_service.model.dto.InternalUser;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
+import com.nasim.chat.auth_service.service.impl.InternalUserServiceImpl;
 import com.nasim.chat.auth_service.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class OidcLoginSuccessHandler
@@ -26,6 +30,9 @@ public class OidcLoginSuccessHandler
 
     private static final String CLIENT_PHONE_ONBOARDING_URL =
             "http://localhost:8082/onboarding/phone";
+
+    private static final String PENDING_REGISTRATION =
+            "PENDING_REGISTRATION";
 
     private final InternalUserService internalUserService;
     private final LoginExchangeCodeService exchangeCodeService;
@@ -58,46 +65,65 @@ public class OidcLoginSuccessHandler
         String externalSubject = oidcUser.getSubject();
         String email = oidcUser.getEmail();
         String name = oidcUser.getFullName();
-        String provider=oidcUser.getIssuer().getHost();
+        String provider = oidcUser.getIssuer().getHost();
+        boolean emailVerified =
+                Boolean.TRUE.equals(oidcUser.getEmailVerified());
 
         // Convert the Google identity into our internal identity
-        AuthenticationResolution authenticationResolution = internalUserService.resolve(
-                issuer,
-                externalSubject,
-                email,
-                name,
-                provider
-        );
-        String redirectUrl =null;
-       if(authenticationResolution.authenticationStatus()==AuthenticationStatus.EXISTING_USER) {
-           // Remove the temporary session used during the OIDC process
-           HttpSession session = request.getSession(false);
-           if (session != null) {
-               session.invalidate();
-           }
-           this.removeOIDCLoginData(response, request);
-           // Create our own short-lived, single-use exchange code
-           String exchangeCode = exchangeCodeService.create(authenticationResolution.internalUser().id(),
-                   authenticationResolution.internalUser().roles());
-           redirectUrl = UriComponentsBuilder
-                   .fromUriString(CLIENT_CALLBACK_URL)
-                   .queryParam("code", exchangeCode)
-                   .build()
-                   .encode()
-                   .toUriString();
 
-       }else{
-           HttpSession session = request.getSession(true);
-           if(session!=null){
-               session.setAttribute("pendingRegistration",authenticationResolution.pendingRegistration());
-           }
-            redirectUrl = UriComponentsBuilder
-                   .fromUriString(CLIENT_PHONE_ONBOARDING_URL)
-                   .build()
-                   .encode()
-                   .toUriString();
-       }
-        response.sendRedirect(redirectUrl);
+        AuthenticationResolution authenticationResolution =
+                internalUserService.resolve(
+                        oidcUser.getIssuer().toString(),
+                        oidcUser.getSubject(),
+                        "GOOGLE",
+                        oidcUser.getEmail(),
+                        emailVerified,
+                        oidcUser.getFullName()
+                );
+        if (authenticationResolution.authenticationStatus()
+                == AuthenticationStatus.EXISTING_USER) {
+
+            InternalUser internalUser =
+                    authenticationResolution.internalUser();
+
+            String exchangeCode = exchangeCodeService.create(
+                    internalUser.id(),
+                    internalUser.roles()
+            );
+
+            removeOIDCLoginData(response, request);
+
+            response.sendRedirect(
+                    CLIENT_CALLBACK_URL
+                            + URLEncoder.encode(
+                            exchangeCode,
+                            StandardCharsets.UTF_8
+                    )
+            );
+        }else {
+
+            HttpSession oidcSession = request.getSession(false);
+
+            if (oidcSession != null) {
+                oidcSession.invalidate();
+            }
+
+            SecurityContextHolder.clearContext();
+
+            HttpSession onboardingSession = request.getSession(true);
+
+            onboardingSession.setMaxInactiveInterval(
+                    InternalUserServiceImpl.ONBOARDING_SESSION_TTL_SECONDS
+            );
+
+            onboardingSession.setAttribute(
+                    PENDING_REGISTRATION,
+                    authenticationResolution.pendingRegistration()
+            );
+
+            response.sendRedirect(CLIENT_PHONE_ONBOARDING_URL);
+        }
+
     }
 
     private void removeOIDCLoginData(HttpServletResponse response, HttpServletRequest request) {
@@ -106,7 +132,7 @@ public class OidcLoginSuccessHandler
         if (session != null) {
             session.invalidate();
         }
-        CookieUtils.removedCookie(response,"JSESSIONID","/");
-        // Redirect with our one-time code—not a JWT
+        CookieUtils.removedCookie(response, "JSESSIONID", "/");
+
     }
 }

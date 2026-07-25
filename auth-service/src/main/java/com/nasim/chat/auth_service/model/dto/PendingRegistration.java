@@ -1,9 +1,14 @@
 package com.nasim.chat.auth_service.model.dto;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
-public record PendingRegistration(String issuer, String externalSubject,
-                                  String email, String name, String provider,
-                                  Instant expiresAt) {
+public record PendingRegistration(
+        String issuer,
+        String subject,
+        String provider,
+        String email,
+        boolean emailVerified,
+        String displayName,
+        Instant expiresAt
+) {
 }
