@@ -58,7 +58,7 @@ public class OidcLoginSuccessHandler
         String provider=oidcUser.getIssuer().getHost();
 
         // Convert the Google identity into our internal identity
-        InternalUser internalUser = internalUserService.findOrCreate(
+        InternalUser internalUser = internalUserService.resolve(
                 issuer,
                 externalSubject,
                 email,

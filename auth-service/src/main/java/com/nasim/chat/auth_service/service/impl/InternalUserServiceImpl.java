@@ -15,7 +15,7 @@ public class InternalUserServiceImpl implements InternalUserService {
     }
 
     @Override
-    public InternalUser findOrCreate(String issuer, String externalSubject, String email, String name,String provider) {
+    public InternalUser resolve(String issuer, String externalSubject, String email, String name, String provider) {
         UserIdentity userIdentity= userIdentityService.findOrCreate(issuer,externalSubject,email,name,provider);
 
 

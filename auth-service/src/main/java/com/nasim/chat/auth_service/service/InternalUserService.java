@@ -4,5 +4,5 @@ import com.nasim.chat.auth_service.model.dto.InternalUser;
 
 public interface InternalUserService {
 
-    InternalUser findOrCreate(String issuer, String externalSubject, String email, String name,String provider);
+    InternalUser resolve(String issuer, String externalSubject, String email, String name, String provider);
 }
