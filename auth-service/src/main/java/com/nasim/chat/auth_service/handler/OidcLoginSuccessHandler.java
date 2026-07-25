@@ -55,13 +55,15 @@ public class OidcLoginSuccessHandler
         String externalSubject = oidcUser.getSubject();
         String email = oidcUser.getEmail();
         String name = oidcUser.getFullName();
+        String provider=oidcUser.getIssuer().getHost();
 
         // Convert the Google identity into our internal identity
         InternalUser internalUser = internalUserService.findOrCreate(
                 issuer,
                 externalSubject,
                 email,
-                name
+                name,
+                provider
         );
 
         // Create our own short-lived, single-use exchange code
