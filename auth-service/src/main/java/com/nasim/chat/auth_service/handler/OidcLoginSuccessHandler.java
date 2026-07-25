@@ -69,7 +69,7 @@ public class OidcLoginSuccessHandler
                 provider
         );
         String redirectUrl =null;
-       if(authenticationResolution.authenticationStatus().equals(AuthenticationStatus.EXISTING_USER)) {
+       if(authenticationResolution.authenticationStatus()==AuthenticationStatus.EXISTING_USER) {
            // Remove the temporary session used during the OIDC process
            HttpSession session = request.getSession(false);
            if (session != null) {
@@ -87,7 +87,7 @@ public class OidcLoginSuccessHandler
                    .toUriString();
 
        }else{
-           HttpSession session = request.getSession(false);
+           HttpSession session = request.getSession(true);
            if(session!=null){
                session.setAttribute("pendingRegistration",authenticationResolution.pendingRegistration());
            }

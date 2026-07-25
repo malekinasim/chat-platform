@@ -10,6 +10,7 @@ import com.nasim.chat.auth_service.model.entity.UserIdentity;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.UserIdentityService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,10 +20,12 @@ import java.util.Optional;
 @Service
 public class InternalUserServiceImpl implements InternalUserService {
     private final UserIdentityService userIdentityService;
+    private final int pendingRegistrationDeadLine=300;
 
     public InternalUserServiceImpl(UserIdentityService userIdentityService) {
         this.userIdentityService = userIdentityService;
     }
+    @Transactional(readOnly = true)
     @Override
     public AuthenticationResolution resolve(String issuer, String externalSubject, String email, String name, String provider) {
 
@@ -34,7 +37,8 @@ public class InternalUserServiceImpl implements InternalUserService {
                     null, AuthenticationStatus.EXISTING_USER);
         }else{
             return  new AuthenticationResolution(null,
-                    new PendingRegistration(issuer,externalSubject,email,name,provider, LocalDateTime.now()),
+                    new PendingRegistration(issuer,externalSubject,email,name,provider,
+                            Instant.now().plusSeconds(pendingRegistrationDeadLine)),
                     AuthenticationStatus.REGISTRATION_REQUIRED);
         }
     }
