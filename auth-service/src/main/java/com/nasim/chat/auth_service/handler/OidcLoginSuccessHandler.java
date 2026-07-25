@@ -1,14 +1,14 @@
 package com.nasim.chat.auth_service.handler;
 
 
+import com.nasim.chat.auth_service.model.dto.AuthenticationResolution;
+import com.nasim.chat.auth_service.model.dto.AuthenticationStatus;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
-import com.nasim.chat.auth_service.model.dto.InternalUser;
+import com.nasim.chat.auth_service.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -23,6 +23,9 @@ public class OidcLoginSuccessHandler
 
     private static final String CLIENT_CALLBACK_URL =
             "http://localhost:8082/auth/callback";
+
+    private static final String CLIENT_PHONE_ONBOARDING_URL =
+            "http://localhost:8082/onboarding/phone";
 
     private final InternalUserService internalUserService;
     private final LoginExchangeCodeService exchangeCodeService;
@@ -58,45 +61,52 @@ public class OidcLoginSuccessHandler
         String provider=oidcUser.getIssuer().getHost();
 
         // Convert the Google identity into our internal identity
-        InternalUser internalUser = internalUserService.resolve(
+        AuthenticationResolution authenticationResolution = internalUserService.resolve(
                 issuer,
                 externalSubject,
                 email,
                 name,
                 provider
         );
+        String redirectUrl =null;
+       if(authenticationResolution.authenticationStatus().equals(AuthenticationStatus.EXISTING_USER)) {
+           // Remove the temporary session used during the OIDC process
+           HttpSession session = request.getSession(false);
+           if (session != null) {
+               session.invalidate();
+           }
+           this.removeOIDCLoginData(response, request);
+           // Create our own short-lived, single-use exchange code
+           String exchangeCode = exchangeCodeService.create(authenticationResolution.internalUser().id(),
+                   authenticationResolution.internalUser().roles());
+           redirectUrl = UriComponentsBuilder
+                   .fromUriString(CLIENT_CALLBACK_URL)
+                   .queryParam("code", exchangeCode)
+                   .build()
+                   .encode()
+                   .toUriString();
 
-        // Create our own short-lived, single-use exchange code
-        String exchangeCode = exchangeCodeService.create(internalUser.id(), internalUser.roles());
+       }else{
+           HttpSession session = request.getSession(false);
+           if(session!=null){
+               session.setAttribute("pendingRegistration",authenticationResolution.pendingRegistration());
+           }
+            redirectUrl = UriComponentsBuilder
+                   .fromUriString(CLIENT_PHONE_ONBOARDING_URL)
+                   .build()
+                   .encode()
+                   .toUriString();
+       }
+        response.sendRedirect(redirectUrl);
+    }
 
+    private void removeOIDCLoginData(HttpServletResponse response, HttpServletRequest request) {
         // Remove the temporary session used during the OIDC process
         HttpSession session = request.getSession(false);
-
         if (session != null) {
             session.invalidate();
         }
-
-        // Tell the browser to remove JSESSIONID
-        ResponseCookie deletedSessionCookie = ResponseCookie
-                .from("JSESSIONID", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                deletedSessionCookie.toString()
-        );
-
+        CookieUtils.removedCookie(response,"JSESSIONID","/");
         // Redirect with our one-time code—not a JWT
-        String redirectUrl = UriComponentsBuilder
-                .fromUriString(CLIENT_CALLBACK_URL)
-                .queryParam("code", exchangeCode)
-                .build()
-                .encode()
-                .toUriString();
-
-        response.sendRedirect(redirectUrl);
     }
 }

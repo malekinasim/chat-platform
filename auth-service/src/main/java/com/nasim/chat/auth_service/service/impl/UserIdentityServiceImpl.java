@@ -6,6 +6,8 @@ import com.nasim.chat.auth_service.service.AppUserService;
 import com.nasim.chat.auth_service.service.UserIdentityService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 public class UserIdentityServiceImpl implements UserIdentityService {
     private final UserIdentityRepository userIdentityRepository;
     private final AppUserService appUserService;
@@ -30,5 +32,10 @@ public class UserIdentityServiceImpl implements UserIdentityService {
             userIdentityRepository.save(userIdentity);
         }
        return null;
+    }
+    @Transactional
+    @Override
+    public Optional<UserIdentity> findIdentityUserByIssuerAndSubject(String issuer, String externalSubject) {
+        return this.findIdentityUserByIssuerAndSubject(issuer,externalSubject);
     }
 }
