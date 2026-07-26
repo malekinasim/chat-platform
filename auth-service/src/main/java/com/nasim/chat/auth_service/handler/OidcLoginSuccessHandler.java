@@ -1,9 +1,12 @@
 package com.nasim.chat.auth_service.handler;
 
 
+import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.dto.AuthenticationResolution;
 import com.nasim.chat.auth_service.model.dto.AuthenticationStatus;
 import com.nasim.chat.auth_service.model.dto.InternalUser;
+import com.nasim.chat.auth_service.model.entity.AppRegisteredClient;
+import com.nasim.chat.auth_service.service.AppRegisterClientService;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
 import com.nasim.chat.auth_service.service.impl.InternalUserServiceImpl;
@@ -18,34 +21,29 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 
 @Component
 public class OidcLoginSuccessHandler
         implements AuthenticationSuccessHandler {
-
-    private static final String CLIENT_CALLBACK_URL =
-            "http://localhost:8082/auth/callback";
-
-    private static final String CLIENT_PHONE_ONBOARDING_URL =
-            "http://localhost:8082/onboarding/phone";
 
     private static final String PENDING_REGISTRATION =
             "PENDING_REGISTRATION";
 
     private final InternalUserService internalUserService;
     private final LoginExchangeCodeService exchangeCodeService;
-
+    private final AppRegisterClientService appRegisterClientService;
     public OidcLoginSuccessHandler(
             InternalUserService internalUserService,
-            LoginExchangeCodeService exchangeCodeService
+            LoginExchangeCodeService exchangeCodeService, AppRegisterClientService appRegisterClientService
     ) {
         this.internalUserService = internalUserService;
         this.exchangeCodeService = exchangeCodeService;
+        this.appRegisterClientService = appRegisterClientService;
     }
 
     @Override
@@ -72,8 +70,16 @@ public class OidcLoginSuccessHandler
         boolean emailVerified =
                 Boolean.TRUE.equals(oidcUser.getEmailVerified());
 
-        // Convert the Google identity into our internal identity
+        Object clientId = request.getSession().getAttribute("APP_CLIENT_ID");
+        if(clientId!=null && StringUtils.hasText(clientId.toString()))
+            throw new CustomException("invalid client id ","INVALID_CLIENT_ID");
 
+        AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId.toString())
+                .orElseThrow(
+               ()-> new CustomException("invalid client id ","INVALID_CLIENT_ID")
+        );
+
+        // Convert the Google identity into our internal identity
         AuthenticationResolution authenticationResolution =
                 internalUserService.resolve(
                         oidcUser.getIssuer().toString(),
@@ -91,7 +97,8 @@ public class OidcLoginSuccessHandler
 
             String exchangeCode = exchangeCodeService.create(
                     internalUser.id(),
-                    internalUser.roles()
+                    internalUser.roles(),
+                    List.of( client.getAudience())
             );
 
             removeOIDCLoginData(response, request);
@@ -99,7 +106,7 @@ public class OidcLoginSuccessHandler
             ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,
                     "/api/auth/token/exchange",Duration.ofSeconds(60));
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-            response.sendRedirect(CLIENT_CALLBACK_URL);
+            response.sendRedirect(client.getCallbackUrl());
         }else {
 
             HttpSession oidcSession = request.getSession(false);
@@ -121,7 +128,7 @@ public class OidcLoginSuccessHandler
                     authenticationResolution.pendingRegistration()
             );
 
-            response.sendRedirect(CLIENT_PHONE_ONBOARDING_URL);
+            response.sendRedirect(client.getOnboardingUrl());
         }
 
     }

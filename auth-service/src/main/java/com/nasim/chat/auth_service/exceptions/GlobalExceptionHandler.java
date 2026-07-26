@@ -20,4 +20,17 @@ public class GlobalExceptionHandler {
                 .badRequest()
                 .body(error);
     }
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiError> handleInvalidExchangeCode(
+            CustomException exception
+    ) {
+        ApiError error = new ApiError(
+                exception.getCode(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .badRequest()
+                .body(error);
+    }
 }

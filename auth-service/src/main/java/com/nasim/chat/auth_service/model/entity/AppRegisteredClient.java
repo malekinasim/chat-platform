@@ -1,8 +1,6 @@
 package com.nasim.chat.auth_service.model.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +8,7 @@ import lombok.Setter;
 @Table(name = "registered_client")
 @Getter
 @Setter
-public class RegisteredClient extends BaseEntity<Integer>{
+public class AppRegisteredClient extends BaseEntity<Integer>{
 
 
     @Column(name = "client_id", nullable = false, unique = true)
@@ -24,7 +22,7 @@ public class RegisteredClient extends BaseEntity<Integer>{
 
     @Column(name = "onboarding_url", nullable = false)
     private String onboardingUrl;
-
+     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean active;
+    private Status active;
 }

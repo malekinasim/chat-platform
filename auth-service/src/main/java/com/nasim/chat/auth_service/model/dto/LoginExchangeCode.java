@@ -6,6 +6,6 @@ import java.util.List;
 public record LoginExchangeCode(
         String userId,
         List<String> roles,
+        List<String> allowedAudiences,
         Instant expiresAt
-) {
-}
+) {}

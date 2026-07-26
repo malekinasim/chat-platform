@@ -18,10 +18,11 @@ public class InMemoryLoginExchangeCodeService implements LoginExchangeCodeServic
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public String create(String userId, List<String> roles) {
+    public String create(String userId, List<String> roles,List<String> allowedAudiences) {
         LoginExchangeCode loginData = new LoginExchangeCode(
                 userId,
                 List.copyOf(roles),
+                allowedAudiences,
                 Instant.now().plusSeconds(60)
         );
 
