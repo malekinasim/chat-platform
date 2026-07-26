@@ -27,7 +27,8 @@ public class SecurityConfig {
                                 athurize.requestMatchers(
                                                 "/auth/login",
                                                 "/login/**",
-                                                "/oauth2/**"
+                                                "/oauth2/**",
+                                                "/api/auth/token/exchange"
                                         ).permitAll()
                                         .anyRequest().authenticated()
 

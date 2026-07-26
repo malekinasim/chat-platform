@@ -1,11 +1,12 @@
 package com.nasim.chat.auth_service.controller;
 
 import com.nasim.chat.auth_service.model.dto.AccessTokenResponse;
+import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
+import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
 import com.nasim.chat.auth_service.service.impl.TokenService;
 import com.nasim.chat.auth_service.utils.CookieUtils;
-import com.nimbusds.oauth2.sdk.TokenResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -15,17 +16,18 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final LoginExchangeCodeService loginExchangeCodeService;
+    private  final RefreshTokenSessionService refreshTokenSessionService;
     private final TokenService tokenService;
 
-    public AuthController(LoginExchangeCodeService loginExchangeCodeService, TokenService tokenService) {
+    public AuthController(LoginExchangeCodeService loginExchangeCodeService, RefreshTokenSessionService refreshTokenSessionService, TokenService tokenService) {
         this.loginExchangeCodeService = loginExchangeCodeService;
+        this.refreshTokenSessionService = refreshTokenSessionService;
         this.tokenService = tokenService;
     }
 
@@ -55,10 +57,10 @@ public class AuthController {
                 loginData.roles(),
                 loginData.allowedAudiences()
         );
-        String refreshToken = tokenService.generateRefreshToken(
-                loginData.userId(),
-                loginData.roles()
-        );
+        GeneratedRefreshToken refreshToken = tokenService.generateRefreshToken(
+                loginData.userId());
+        refreshTokenSessionService.createAndRevokeRefreshToken(loginData.userId(),refreshToken.tokenId(),refreshToken.expiresAt());
+
         CookieUtils.removedCookie(
                 response,
                 "LOGIN_EXCHANGE_CODE",
@@ -71,8 +73,10 @@ public class AuthController {
                 300
         );
 
-        ResponseCookie refreshCookie = CookieUtils.CreateCookie("REFRESH_TOKEN", refreshToken,
-                "/api/auth/token", Duration.ofDays(7),true,false,"Lax");
+        ResponseCookie refreshCookie = CookieUtils.CreateCookie(
+                "REFRESH_TOKEN", refreshToken.toString(),
+                "/api/auth/token", Duration.ofDays(7),
+                true,false,"Lax");
 
         response.addHeader(
                 HttpHeaders.SET_COOKIE,
@@ -84,6 +88,14 @@ public class AuthController {
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .body(body);
     }
+//TODO
+   /* @PostMapping("/token/refresh")
+    public ResponseEntity<AccessTokenResponse> refreshToken(
+            @CookieValue("REFRESH_TOKEN") String refreshToken ,
+            HttpServletResponse response
+    ) {
+
+    }*/
 
 
 }
