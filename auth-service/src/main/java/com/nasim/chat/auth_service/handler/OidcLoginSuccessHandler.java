@@ -75,9 +75,12 @@ public class OidcLoginSuccessHandler
                         oidcUser.getIssuer().toString(),
                         oidcUser.getSubject(),
                         oidcUser.getEmail(),
-                        oidcUser.getIssuer().getHost(),
+                        oidcUser.getFullName(),
+
                         Boolean.TRUE.equals(oidcUser.getEmailVerified()),
-                        oidcUser.getFullName()
+
+                        oidcUser.getIssuer().getHost()
+
                 );
         if (authenticationResolution.authenticationStatus()
                 == AuthenticationStatus.EXISTING_USER) {

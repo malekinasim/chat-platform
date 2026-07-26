@@ -35,7 +35,7 @@ public class SecurityConfig {
 
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/token/**")
+                        .ignoringRequestMatchers("/api/auth/token/exchange")
                 ).oauth2Login(oauth2 -> oauth2
                         .successHandler(oidcLoginSuccessHandler)
                 ).sessionManagement(

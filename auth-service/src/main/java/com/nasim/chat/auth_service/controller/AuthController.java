@@ -31,18 +31,6 @@ public class AuthController {
         this.tokenService = tokenService;
     }
 
-    @GetMapping("/me")
-    public Map<String, Object> currentUser(
-            @AuthenticationPrincipal OidcUser oidcUser) {
-
-        return Map.of(
-                "subject", oidcUser.getSubject(),
-                "email", oidcUser.getEmail(),
-                "name", oidcUser.getFullName(),
-                "issuer", oidcUser.getIssuer().toString(),
-                "idToken", oidcUser.getIdToken()
-        );
-    }
 
     @PostMapping("/token/exchange")
     public ResponseEntity<AccessTokenResponse> exchange(

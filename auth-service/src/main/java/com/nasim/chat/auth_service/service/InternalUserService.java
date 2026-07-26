@@ -9,8 +9,9 @@ public interface InternalUserService {
             String issuer,
             String externalSubject,
             String email,
-            String provider,
+            String displayName,
             boolean emailVerified,
-            String displayName
+            String provider
+
     );
 }
