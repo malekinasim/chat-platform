@@ -4,5 +4,5 @@ import java.time.Instant;
 
 public interface RefreshTokenSessionService {
 
-    void createAndRevokeRefreshToken(String userId, String tokenId, Instant expiresAt);
+    void createAndRevokeRefreshToken(String userId, String tokenId,String clientId, Instant expiresAt);
 }

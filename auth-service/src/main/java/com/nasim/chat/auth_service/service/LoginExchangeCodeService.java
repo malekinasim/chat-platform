@@ -5,7 +5,7 @@ import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import java.util.List;
 
 public interface LoginExchangeCodeService {
-    public String create(String id, List<String> roles,List<String> audiences);
+    public String create(String id,String clientId, List<String> roles,List<String> audiences);
     LoginExchangeCode consume(String code);
 
 }

@@ -60,16 +60,6 @@ public class OidcLoginSuccessHandler
             );
             return;
         }
-
-        // The external identity validated by Spring Security
-        String issuer = oidcUser.getIssuer().toString();
-        String externalSubject = oidcUser.getSubject();
-        String email = oidcUser.getEmail();
-        String name = oidcUser.getFullName();
-        String provider = oidcUser.getIssuer().getHost();
-        boolean emailVerified =
-                Boolean.TRUE.equals(oidcUser.getEmailVerified());
-
         Object clientId = request.getSession().getAttribute("APP_CLIENT_ID");
         if(clientId==null || !StringUtils.hasText(clientId.toString()))
             throw new CustomException("invalid client id ","INVALID_CLIENT_ID");
@@ -84,9 +74,9 @@ public class OidcLoginSuccessHandler
                 internalUserService.resolve(
                         oidcUser.getIssuer().toString(),
                         oidcUser.getSubject(),
-                        "GOOGLE",
                         oidcUser.getEmail(),
-                        emailVerified,
+                        oidcUser.getIssuer().getHost(),
+                        Boolean.TRUE.equals(oidcUser.getEmailVerified()),
                         oidcUser.getFullName()
                 );
         if (authenticationResolution.authenticationStatus()
@@ -97,6 +87,7 @@ public class OidcLoginSuccessHandler
 
             String exchangeCode = exchangeCodeService.create(
                     internalUser.id(),
+                    client.getClientId(),
                     internalUser.roles(),
                     List.of( client.getAudience())
             );

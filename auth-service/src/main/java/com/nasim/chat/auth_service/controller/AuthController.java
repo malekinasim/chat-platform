@@ -59,7 +59,11 @@ public class AuthController {
         );
         GeneratedRefreshToken refreshToken = tokenService.generateRefreshToken(
                 loginData.userId());
-        refreshTokenSessionService.createAndRevokeRefreshToken(loginData.userId(),refreshToken.tokenId(),refreshToken.expiresAt());
+        refreshTokenSessionService.createAndRevokeRefreshToken(
+                loginData.userId(),
+                refreshToken.tokenId(),
+                loginData.clientId(),
+                refreshToken.expiresAt());
 
         CookieUtils.removedCookie(
                 response,
