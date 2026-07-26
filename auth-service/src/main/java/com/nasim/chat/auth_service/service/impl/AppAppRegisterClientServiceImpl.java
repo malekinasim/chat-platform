@@ -17,16 +17,24 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
     }
 
     @Override
-    public void registerClientIfNotExists(String clientId, String audience, String callbackUrl, String onboardingUrl, Status statue) {
+    public void registerClientIfNotExists(
+            String clientId,
+            String audience,
+            String callbackUrl,
+            String onboardingUrl,
+            Status status
+    ) {
         if (appRegisterClientRepository.existsByClientId(clientId)) {
             return;
         }
-        AppRegisteredClient client= new AppRegisteredClient();
+
+        AppRegisteredClient client = new AppRegisteredClient();
         client.setClientId(clientId);
         client.setAudience(audience);
-        client.setStatus(statue);
+        client.setStatus(status);
         client.setCallbackUrl(callbackUrl);
         client.setOnboardingUrl(onboardingUrl);
+
         appRegisterClientRepository.save(client);
     }
 
