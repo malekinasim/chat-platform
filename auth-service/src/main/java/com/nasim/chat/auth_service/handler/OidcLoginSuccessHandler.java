@@ -11,6 +11,8 @@ import com.nasim.chat.auth_service.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 @Component
 public class OidcLoginSuccessHandler
@@ -93,13 +96,10 @@ public class OidcLoginSuccessHandler
 
             removeOIDCLoginData(response, request);
 
-            response.sendRedirect(
-                    CLIENT_CALLBACK_URL
-                            + URLEncoder.encode(
-                            exchangeCode,
-                            StandardCharsets.UTF_8
-                    )
-            );
+            ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,
+                    "/api/auth/token/exchange",Duration.ofSeconds(60));
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            response.sendRedirect(CLIENT_CALLBACK_URL);
         }else {
 
             HttpSession oidcSession = request.getSession(false);

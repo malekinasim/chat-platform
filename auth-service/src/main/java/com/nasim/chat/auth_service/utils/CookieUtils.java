@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
+import java.time.Duration;
+
 
 public class CookieUtils {
     public static void removedCookie(HttpServletResponse response, String cookieName, String path){
@@ -19,8 +21,16 @@ public class CookieUtils {
                 deletedSessionCookie.toString()
         );
     }
-    public static void CreateCookie(){
-
+    public static ResponseCookie CreateCookie(String name,String value,String path,Duration maxAgeInSeconds){
+        ResponseCookie cookie = ResponseCookie
+                .from(name, value)
+                .httpOnly(true)
+                .secure(false) // true in production with HTTPS
+                .sameSite("Lax")
+                .path(path!=null ? path: "/")
+                .maxAge(maxAgeInSeconds)
+                .build();
+        return cookie;
     }
 
 }
