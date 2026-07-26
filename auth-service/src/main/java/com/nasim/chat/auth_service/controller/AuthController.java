@@ -78,7 +78,7 @@ public class AuthController {
         );
 
         ResponseCookie refreshCookie = CookieUtils.CreateCookie(
-                "REFRESH_TOKEN", refreshToken.toString(),
+                "REFRESH_TOKEN", refreshToken.tokenValue(),
                 "/api/auth/token", Duration.ofDays(7),
                 true,false,"Lax");
 

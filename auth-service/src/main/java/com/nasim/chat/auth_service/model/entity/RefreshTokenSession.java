@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class RefreshTokenSession extends BaseEntity<Long> {
-    @Column(name = "token_id",length = 300,nullable = false)
+    @Column(name = "token_id",unique = true,nullable = false)
     private String tokenId;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id",nullable = false)
@@ -24,7 +24,7 @@ public class RefreshTokenSession extends BaseEntity<Long> {
 
     @Column(name = "expires_at",nullable = false)
     private Instant expiresAt;
-    @Column(name = "expires_at")
+    @Column(name = "revoked_at")
     private Instant revokedAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "replaced_by_token_id")

@@ -30,11 +30,11 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
     @Transactional(rollbackFor = Exception.class)
     public void createAndRevokeRefreshToken(String userId, String tokenId,String clientId, Instant expiresAt) {
         Optional<RefreshTokenSession> preRefreshTokenSession= refreshTokenSessionRepository.
-                findCurrentRefreshTokenByUserIdAndClientId(Long.getLong(userId),clientId);
+                findCurrentRefreshTokenByUserIdAndClientId(Long.parseLong(userId),clientId);
 
         RefreshTokenSession refreshSession = new RefreshTokenSession();
         refreshSession.setTokenId(tokenId);
-        AppUser user=appUserService.findById(Long.getLong(userId));
+        AppUser user=appUserService.findById(Long.parseLong(userId));
         refreshSession.setUser(user);
         refreshSession.setExpiresAt(expiresAt);
         AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId)

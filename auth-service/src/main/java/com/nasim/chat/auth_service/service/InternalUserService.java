@@ -5,8 +5,12 @@ import com.nasim.chat.auth_service.model.dto.InternalUser;
 
 public interface InternalUserService {
 
-    AuthenticationResolution resolve(String issuer, String externalSubject, String email,
-                                     String name,
-                                     boolean emailVerified,
-                                     String provider);
+    AuthenticationResolution resolve(
+            String issuer,
+            String externalSubject,
+            String email,
+            String provider,
+            boolean emailVerified,
+            String displayName
+    );
 }

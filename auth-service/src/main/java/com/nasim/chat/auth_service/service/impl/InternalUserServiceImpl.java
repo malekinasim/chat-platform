@@ -30,7 +30,7 @@ public class InternalUserServiceImpl implements InternalUserService {
     }
     @Override
     @Transactional(readOnly = true)
-    public AuthenticationResolution resolve(String issuer, String externalSubject, String email, String name,boolean emailVerified, String provider) {
+    public AuthenticationResolution resolve(String issuer, String externalSubject, String email, String displayName,boolean emailVerified, String provider) {
 
         Optional<UserIdentity> userIdentity= userIdentityService.findIdentityUserByIssuerAndSubject(issuer,externalSubject);
         if(userIdentity.isPresent()){
@@ -48,7 +48,7 @@ public class InternalUserServiceImpl implements InternalUserService {
                             provider,
                             email,
                             emailVerified,
-                            name,
+                            displayName,
                             Instant.now().plusSeconds(ONBOARDING_SESSION_TTL_SECONDS)
                     );
 

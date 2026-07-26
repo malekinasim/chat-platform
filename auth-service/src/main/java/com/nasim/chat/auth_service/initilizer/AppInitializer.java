@@ -20,7 +20,8 @@ public class AppInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        roleService.createRoleIfNotExists("ROLE_USER","Default User Role");
+        roleService.createRoleIfNotExists("USER",
+                "Default User Role");
         appRegisterClientService.registerClientIfNotExists(
                "chat-client","chat-client",
                 "http://localhost:8082/auth/callback",
