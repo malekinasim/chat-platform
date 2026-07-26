@@ -41,4 +41,7 @@ public class TokenService {
                 .encode(JwtEncoderParameters.from(claims))
                 .getTokenValue();
     }
+
+    public String generateRefreshToken(String s, List<String> roles) {
+    }
 }

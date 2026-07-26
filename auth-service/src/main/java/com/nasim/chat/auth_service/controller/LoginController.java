@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-@RestController
+@RestController("/auth")
 public class LoginController {
     private  final AppRegisterClientService registerClientService;
 
@@ -18,7 +18,7 @@ public class LoginController {
         this.registerClientService = registerClientService;
     }
 
-    @GetMapping("/auth/login")
+    @GetMapping("/login")
     public void login(
             @RequestParam("app_client_id") String appClientId,
             HttpServletRequest request,

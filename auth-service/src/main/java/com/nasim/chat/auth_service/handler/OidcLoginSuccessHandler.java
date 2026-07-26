@@ -104,7 +104,7 @@ public class OidcLoginSuccessHandler
             removeOIDCLoginData(response, request);
 
             ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,
-                    "/api/auth/token/exchange",Duration.ofSeconds(60));
+                    "/api/auth/token/exchange",Duration.ofSeconds(60),true,false,"Lax");
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             response.sendRedirect(client.getCallbackUrl());
         }else {

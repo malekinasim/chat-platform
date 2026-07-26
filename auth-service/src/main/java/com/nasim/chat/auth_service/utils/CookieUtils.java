@@ -3,6 +3,7 @@ package com.nasim.chat.auth_service.utils;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 
@@ -21,12 +22,14 @@ public class CookieUtils {
                 deletedSessionCookie.toString()
         );
     }
-    public static ResponseCookie CreateCookie(String name,String value,String path,Duration maxAgeInSeconds){
+    public static ResponseCookie CreateCookie(String name,String value,String path,
+                                              Duration maxAgeInSeconds,boolean httpOnly,boolean secure,
+                                              String samSite){
         ResponseCookie cookie = ResponseCookie
                 .from(name, value)
-                .httpOnly(true)
-                .secure(false) // true in production with HTTPS
-                .sameSite("Lax")
+                .httpOnly(httpOnly)
+                .secure(secure) // true in production with HTTPS
+                .sameSite(StringUtils.hasText(samSite)? samSite:"Lax")
                 .path(path!=null ? path: "/")
                 .maxAge(maxAgeInSeconds)
                 .build();
