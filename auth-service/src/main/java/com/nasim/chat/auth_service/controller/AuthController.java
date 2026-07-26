@@ -45,14 +45,15 @@ public class AuthController {
         if(exchangeCode!=null && exchangeCode.expiresAt().isAfter(Instant.now())){
             LoginExchangeCode loginData =
                     loginExchangeCodeService.consume(code);
-
-            tokenService.generateAccessToken(
+//TODO
+           /* tokenService.generateAccessToken(
                     loginData.userId(),
                     loginData.roles(),
                     loginData.audiences()
-            );
+            );*/
         }else{
 
         }
+        return null;
     }
 }
