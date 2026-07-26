@@ -33,17 +33,10 @@ public class SecurityConfig {
 
                 ).oauth2Login(oauth2 -> oauth2
                         .successHandler(oidcLoginSuccessHandler)
-                ).sessionManagement(session -> session
+                ).sessionManagement(
+                        session -> session
                         // 1. Define Creation Policy
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-
-                        // 2. Prevent Session Fixation Attacks
-                        .sessionFixation(sessionFixation -> sessionFixation.newSession())
-
-                        // 3. Control Concurrent Sessions
-                        .maximumSessions(1)
-
-                        .maxSessionsPreventsLogin(true)
                 )
                 .build();
     }

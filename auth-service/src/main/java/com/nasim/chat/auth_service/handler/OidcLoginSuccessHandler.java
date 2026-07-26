@@ -71,7 +71,7 @@ public class OidcLoginSuccessHandler
                 Boolean.TRUE.equals(oidcUser.getEmailVerified());
 
         Object clientId = request.getSession().getAttribute("APP_CLIENT_ID");
-        if(clientId!=null && StringUtils.hasText(clientId.toString()))
+        if(clientId==null || !StringUtils.hasText(clientId.toString()))
             throw new CustomException("invalid client id ","INVALID_CLIENT_ID");
 
         AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId.toString())

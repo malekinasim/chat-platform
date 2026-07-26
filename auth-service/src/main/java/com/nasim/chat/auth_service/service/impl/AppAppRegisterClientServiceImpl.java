@@ -17,9 +17,12 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
     }
 
     @Override
-    public void registerClientIfNotExists(String clinetId, String audience, String callbackUrl, String onboardingUrl, Status statue) {
+    public void registerClientIfNotExists(String clientId, String audience, String callbackUrl, String onboardingUrl, Status statue) {
+        if (appRegisterClientRepository.existsByClientId(clientId)) {
+            return;
+        }
         AppRegisteredClient client= new AppRegisteredClient();
-        client.setClientId(clinetId);
+        client.setClientId(clientId);
         client.setAudience(audience);
         client.setActive(statue);
         client.setCallbackUrl(callbackUrl);
@@ -29,6 +32,6 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
 
     @Override
     public Optional<AppRegisteredClient> findActiveClient(String clientId) {
-        return appRegisterClientRepository.findByClientIdAndActiveTrue(clientId);
+        return appRegisterClientRepository.findByClientIdAndStatus(clientId,Status.ACTIVE);
     }
 }
