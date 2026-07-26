@@ -24,7 +24,7 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
         AppRegisteredClient client= new AppRegisteredClient();
         client.setClientId(clientId);
         client.setAudience(audience);
-        client.setActive(statue);
+        client.setStatus(statue);
         client.setCallbackUrl(callbackUrl);
         client.setOnboardingUrl(onboardingUrl);
         appRegisterClientRepository.save(client);
