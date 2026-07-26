@@ -122,6 +122,10 @@ public class OidcLoginSuccessHandler
             onboardingSession.setMaxInactiveInterval(
                     InternalUserServiceImpl.ONBOARDING_SESSION_TTL_SECONDS
             );
+            onboardingSession.setAttribute(
+                    "APP_CLIENT_ID",
+                    client.getClientId()
+            );
 
             onboardingSession.setAttribute(
                     PENDING_REGISTRATION,
