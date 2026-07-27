@@ -7,6 +7,7 @@ import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import com.nasim.chat.auth_service.model.entity.RefreshTokenSession;
 import com.nasim.chat.auth_service.model.entity.Role;
+import com.nasim.chat.auth_service.model.entity.Status;
 import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
 import com.nasim.chat.auth_service.service.TokenService;
 import org.springframework.beans.factory.annotation.Value;
@@ -127,11 +128,18 @@ public class TokenServiceImpl implements TokenService {
     @Transactional(rollbackFor = Exception.class)
     public AuthenticationTokens generatesAuthenticationTokens(String rawRefreshToken) {
         try{
-        RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenHash(
+             RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenHash(
                 bytesToHex(getSHA256(rawRefreshToken)))
                 .orElseThrow(
-                        () -> new CustomException("can nor find valid refreshToken", "INVALID_TOKEN_HASH")
+                        () -> new CustomException("can nor find valid refreshToken",
+                                "INVALID_TOKEN_HASH")
                 );
+            if (oldRefreshToken.getUser().getStatus() != Status.ACTIVE) {
+                throw new CustomException(
+                        "user is not active",
+                        "INACTIVE_USER"
+                );
+            }
             String userId = oldRefreshToken.getUser().getId().toString();
             String clientId = oldRefreshToken.getClient().getClientId();
             List<String> roles = oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();
