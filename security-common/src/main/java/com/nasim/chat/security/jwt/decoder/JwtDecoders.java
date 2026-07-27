@@ -17,7 +17,8 @@ public final class JwtDecoders {
 
     public static JwtDecoder create(
             RSAPublicKey publicKey,
-            String issuer,String allowedAudience) {
+            String issuer,
+            String allowedAudience) {
 
         NimbusJwtDecoder decoder =
                 NimbusJwtDecoder.withPublicKey(publicKey).build();
