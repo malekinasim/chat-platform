@@ -26,7 +26,7 @@ public interface RefreshTokenSessionRepository extends JpaRepository<RefreshToke
 
             select token
         from RefreshTokenSession tokenValue
-        where token.tokenId = :userId
+        where token.tokenId = :tokenValue
           and token.revokedAt is null
           and token.expiresAt > CURRENT_TIMESTAMP
         """)
