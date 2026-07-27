@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,9 +52,14 @@ public class AuthController {
 
     @PostMapping("/token/refresh")
     public ResponseEntity<AccessTokenResponse> refreshToken(
-            @CookieValue("REFRESH_TOKEN") String rawRefreshToken,
+            @CookieValue(value = "REFRESH_TOKEN", required = false) String rawRefreshToken,
             HttpServletResponse response
     ) {
+        if (!StringUtils.hasText(rawRefreshToken)) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
         try {
             AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(rawRefreshToken);
             return this.generateTokenResponse(tokens, response);
