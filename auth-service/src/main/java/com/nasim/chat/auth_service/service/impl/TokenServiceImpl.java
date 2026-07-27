@@ -142,7 +142,7 @@ public class TokenServiceImpl implements TokenService {
             GeneratedRefreshToken newRefreshToken = this.generateRefreshToken();
             refreshTokenSessionService.createAndRevokeRefreshToken(
                     userId,
-                    newRefreshToken.hashRefreshToken(), ,
+                    newRefreshToken.hashRefreshToken(),
                     clientId,
                     oldRefreshToken,
                     newRefreshToken.expiresAt());
