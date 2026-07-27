@@ -64,7 +64,7 @@ public class AuthController {
             try {
                tokenService.revokeRefreshToken(rawRefreshToken);
 
-            } catch (Exception e) {
+            } catch (CustomException  e) {
                 // An invalid or already-revoked token is treated as logged out
             }
         }
