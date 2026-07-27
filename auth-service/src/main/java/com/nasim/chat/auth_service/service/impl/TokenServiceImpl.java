@@ -159,4 +159,15 @@ public class TokenServiceImpl implements TokenService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void revokeRefreshToken(String rawRefreshToken) {
+        try {
+            refreshTokenSessionService.revokeRefreshToken(bytesToHex(getSHA256(rawRefreshToken)));
+
+        } catch (NoSuchAlgorithmException e) {
+            throw  new CustomException("can nor find valid refreshToken",
+                    "INVALID_TOKEN_HASH");
+        }
+    }
 }

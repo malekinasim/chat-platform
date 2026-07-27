@@ -10,4 +10,6 @@ public interface RefreshTokenSessionService {
     Optional<RefreshTokenSession> findByTokenHash(String tokenId);
 
     void createAndRevokeRefreshToken(String userId, String hashToken, String clientId,RefreshTokenSession oldRefreshToken, Instant expiresAt);
+
+    void revokeRefreshToken(String s);
 }

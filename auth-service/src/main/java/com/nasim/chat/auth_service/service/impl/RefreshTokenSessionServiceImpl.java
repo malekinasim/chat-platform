@@ -25,38 +25,55 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
         this.appUserService = appUserService;
         this.appRegisterClientService = appRegisterClientService;
     }
+
     @Override
     @Transactional
-    public Optional<RefreshTokenSession> findByTokenHash(String tokenHash){
+    public Optional<RefreshTokenSession> findByTokenHash(String tokenHash) {
         return refreshTokenSessionRepository.findNonExpiredByHashToken(tokenHash);
     }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createAndRevokeRefreshToken(String userId, String hashToken,String clientId, RefreshTokenSession oldRefreshToken, Instant expiresAt) {
-        if(oldRefreshToken==null) {
+    public void createAndRevokeRefreshToken(String userId, String hashToken, String clientId, RefreshTokenSession oldRefreshToken, Instant expiresAt) {
+        if (oldRefreshToken == null) {
             Optional<RefreshTokenSession> preRefreshTokenSession = refreshTokenSessionRepository.
                     findCurrentRefreshTokenByUserIdAndClientId(Long.parseLong(userId), clientId);
-            oldRefreshToken=preRefreshTokenSession.orElse(null);
+            oldRefreshToken = preRefreshTokenSession.orElse(null);
         }
 
         RefreshTokenSession refreshSession = new RefreshTokenSession();
         refreshSession.setTokenHash(hashToken);
-        AppUser user=appUserService.findById(Long.parseLong(userId));
+        AppUser user = appUserService.findById(Long.parseLong(userId));
         refreshSession.setUser(user);
         refreshSession.setExpiresAt(expiresAt);
-        AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId)
+        AppRegisteredClient client = appRegisterClientService.findActiveClient(clientId)
                 .orElseThrow(
-                        ()-> new CustomException("invalid client id ","INVALID_CLIENT_ID")
+                        () -> new CustomException("invalid client id ", "INVALID_CLIENT_ID")
                 );
 
         refreshSession.setClient(client);
         refreshTokenSessionRepository.save(refreshSession);
 
-        if(oldRefreshToken!=null){
-            oldRefreshToken.setReplacedByToken(refreshSession);
-            oldRefreshToken.setRevokedAt(Instant.now());
-            refreshTokenSessionRepository.save(oldRefreshToken);
+        if (oldRefreshToken != null) {
+            this.revokeRefreshToken(oldRefreshToken, refreshSession);
         }
 
+    }
+
+    @Override
+    public void revokeRefreshToken(String hashToken) {
+        RefreshTokenSession oldRefreshToken = this.findByTokenHash(hashToken)
+                .orElseThrow(
+                        () -> new CustomException("can nor find valid refreshToken",
+                                "INVALID_TOKEN_HASH")
+                );
+        revokeRefreshToken(oldRefreshToken, null);
+    }
+
+    private void revokeRefreshToken(RefreshTokenSession oldRefreshToken, RefreshTokenSession newRefreshToken) {
+        if (newRefreshToken != null)
+            oldRefreshToken.setReplacedByToken(newRefreshToken);
+        oldRefreshToken.setRevokedAt(Instant.now());
+        refreshTokenSessionRepository.save(oldRefreshToken);
     }
 }

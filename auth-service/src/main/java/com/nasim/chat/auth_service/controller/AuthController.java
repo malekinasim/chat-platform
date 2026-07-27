@@ -14,10 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 
@@ -58,6 +55,26 @@ public class AuthController {
         return this.generateTokenResponse(tokens, response);
     }
 
+    @PostMapping("/token/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue(value = "REFRESH_TOKEN", required = false) String rawRefreshToken,
+            HttpServletResponse response
+    ) {
+        if (StringUtils.hasText(rawRefreshToken)) {
+            try {
+               tokenService.revokeRefreshToken(rawRefreshToken);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        CookieUtils.removedCookie(response,
+                "REFRESH_TOKEN",
+                "/api/auth/token");
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+    }
     @PostMapping("/token/refresh")
     public ResponseEntity<AccessTokenResponse> refreshToken(
             @CookieValue(value = "REFRESH_TOKEN", required = false) String rawRefreshToken,

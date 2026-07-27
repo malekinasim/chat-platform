@@ -6,5 +6,6 @@ import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 public interface TokenService {
     AuthenticationTokens generatesAuthenticationTokens(LoginExchangeCode loginData);
     AuthenticationTokens generatesAuthenticationTokens(String rawRefreshToken);
+    void revokeRefreshToken(String rawRefreshToken);
 
 }
