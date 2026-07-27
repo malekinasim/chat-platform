@@ -60,7 +60,8 @@ public class AuthController {
        }
 
     }
-    private  ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,HttpServletResponse response){
+    private  ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,
+                                                                       HttpServletResponse response){
         AccessTokenResponse body = new AccessTokenResponse(
                 tokens.accessToken(),
                 "Bearer",

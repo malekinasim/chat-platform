@@ -26,7 +26,7 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
         this.appRegisterClientService = appRegisterClientService;
     }
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<RefreshTokenSession> findByTokenHash(String tokenHash){
         return refreshTokenSessionRepository.findNonExpiredByHashToken(tokenHash);
     }
