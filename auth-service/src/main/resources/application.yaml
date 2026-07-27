@@ -33,4 +33,4 @@ security:
     private-key-file: file:../dev-keys/private.pem
     issuer: http://auth-service:8083
   cookie:
-    secure: false
+    secure: ${COOKIE_SECURE:false}
