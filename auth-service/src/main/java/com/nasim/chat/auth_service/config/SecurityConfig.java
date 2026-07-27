@@ -28,7 +28,7 @@ public class SecurityConfig {
                                         "/auth/login",
                                         "/login/**",
                                         "/oauth2/**",
-                                        "/api/auth/token/exchange",
+                                        "/api/auth/token/**",
                                         "/actuator/health"
                                 ).permitAll()
                                 .anyRequest().authenticated()

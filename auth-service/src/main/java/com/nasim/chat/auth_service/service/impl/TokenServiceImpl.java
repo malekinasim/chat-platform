@@ -1,16 +1,18 @@
 package com.nasim.chat.auth_service.service.impl;
 
 
+import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.dto.AuthenticationTokens;
 import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
+import com.nasim.chat.auth_service.model.entity.RefreshTokenSession;
+import com.nasim.chat.auth_service.model.entity.Role;
 import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
 import com.nasim.chat.auth_service.service.TokenService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -50,6 +52,7 @@ public class TokenServiceImpl implements TokenService {
                 .encode(JwtEncoderParameters.from(claims))
                 .getTokenValue();
     }
+
 
     public GeneratedRefreshToken generateRefreshToken(String userId) {
         Instant now = Instant.now();
@@ -92,9 +95,29 @@ public class TokenServiceImpl implements TokenService {
         return new AuthenticationTokens(accessToken,refreshToken.tokenValue());
 
     }
-
     @Override
-    public boolean isValidRefreshToken(String refreshToken) {
-        return  refreshTokenSessionService.isValidToken(refreshToken);
+    @Transactional(rollbackFor = Exception.class)
+    public AuthenticationTokens generatesAuthenticationTokens(String tokenId) {
+        RefreshTokenSession oldRefreshToken =refreshTokenSessionService.findByTokenId(tokenId).orElseThrow(
+                ()->new CustomException("can nor find valid refreshToken","INVALID_TOKEN_ID")
+        );
+        String userId=oldRefreshToken.getUser().getId().toString();
+        String clientId=oldRefreshToken.getClient().getClientId();
+        List<String> roles=oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();
+        List<String> allowedAudiences=List.of(oldRefreshToken.getClient().getAudience());
+        String accessToken=this.generateAccessToken(
+                userId,roles,allowedAudiences
+        );
+        GeneratedRefreshToken newRefreshToken = this.generateRefreshToken(userId);
+        refreshTokenSessionService.createAndRevokeRefreshToken(
+                userId,
+                newRefreshToken.tokenId(),
+                clientId,
+                newRefreshToken.expiresAt());
+        return new AuthenticationTokens(accessToken,newRefreshToken.tokenValue());
     }
+
+
+
+
 }

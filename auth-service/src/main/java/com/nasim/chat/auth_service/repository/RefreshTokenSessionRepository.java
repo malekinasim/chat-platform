@@ -23,12 +23,11 @@ public interface RefreshTokenSessionRepository extends JpaRepository<RefreshToke
             @Param("clientId") String clientId
     );
     @Query("""
-
             select token
-        from RefreshTokenSession tokenValue
-        where token.tokenId = :tokenValue
+        from RefreshTokenSession token
+        where token.tokenId = :tokenId
           and token.revokedAt is null
           and token.expiresAt > CURRENT_TIMESTAMP
         """)
-    Optional<RefreshTokenSession> findNonExpiredByTokenValue( @Param("tokenValue") String tokenValue);
+    Optional<RefreshTokenSession> findNonExpiredByTokenId(@Param("tokenId") String tokenId);
 }

@@ -49,13 +49,15 @@ public class AuthController {
     }
     @PostMapping("/token/refresh")
     public ResponseEntity<AccessTokenResponse> refreshToken(
-            @CookieValue("REFRESH_TOKEN") String refreshToken ,
+            @CookieValue("REFRESH_TOKEN") String tokenId ,
             HttpServletResponse response
     ) {
-       if(!tokenService.isValidRefreshToken(refreshToken))
-           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        AuthenticationTokens tokens=tokenService.generatesAuthenticationTokens(refreshToken);
-        return  this.generateTokenResponse(tokens,response);
+       try {
+           AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(tokenId);
+           return this.generateTokenResponse(tokens, response);
+       } catch (CustomException e) {
+               return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+       }
 
     }
     private  ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,HttpServletResponse response){

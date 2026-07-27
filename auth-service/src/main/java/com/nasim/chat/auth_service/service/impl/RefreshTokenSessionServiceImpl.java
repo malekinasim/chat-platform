@@ -27,8 +27,15 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
     }
     @Override
     public boolean isValidToken(String tokenValue){
-        Optional<RefreshTokenSession> refreshTokenSession=  refreshTokenSessionRepository.findNonExpiredByTokenValue(tokenValue);
+        Optional<RefreshTokenSession> refreshTokenSession=  refreshTokenSessionRepository.findNonExpiredByTokenId(tokenValue);
         return  refreshTokenSession.isPresent();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<RefreshTokenSession> findByTokenId(String tokenId){
+        return refreshTokenSessionRepository.findNonExpiredByTokenId(tokenId);
+
     }
 
     @Override
