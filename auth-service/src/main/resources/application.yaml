@@ -32,4 +32,5 @@ security:
     public-key-file: file:../dev-keys/public.pem
     private-key-file: file:../dev-keys/private.pem
     issuer: http://auth-service:8083
-
+  cookie:
+    secure: false
