@@ -24,6 +24,7 @@ import java.time.Duration;
 public class AuthController {
     private final LoginExchangeCodeService loginExchangeCodeService;
     private final TokenService tokenService;
+
     public AuthController(LoginExchangeCodeService loginExchangeCodeService, TokenService tokenService) {
         this.loginExchangeCodeService = loginExchangeCodeService;
         this.tokenService = tokenService;
@@ -39,30 +40,36 @@ public class AuthController {
                 loginExchangeCodeService.consume(code);
 
 
-        AuthenticationTokens tokens=tokenService.generatesAuthenticationTokens(loginData);
+        AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(loginData);
         CookieUtils.removedCookie(
                 response,
                 "LOGIN_EXCHANGE_CODE",
                 "/api/auth/token/exchange"
         );
-        return  this.generateTokenResponse(tokens,response);
+        return this.generateTokenResponse(tokens, response);
     }
+
     @PostMapping("/token/refresh")
     public ResponseEntity<AccessTokenResponse> refreshToken(
-            @CookieValue("REFRESH_TOKEN") String rawRefreshToken ,
+            @CookieValue("REFRESH_TOKEN") String rawRefreshToken,
             HttpServletResponse response
     ) {
-       try {
-           AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(rawRefreshToken);
-           return this.generateTokenResponse(tokens, response);
-       } catch (CustomException e) {
-
-               return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-       }
+        try {
+            AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(rawRefreshToken);
+            return this.generateTokenResponse(tokens, response);
+        } catch (CustomException e) {
+            CookieUtils.removedCookie(
+                    response,
+                    "REFRESH_TOKEN",
+                    "/api/auth/token"
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
     }
-    private  ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,
-                                                                       HttpServletResponse response){
+
+    private ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,
+                                                                      HttpServletResponse response) {
         AccessTokenResponse body = new AccessTokenResponse(
                 tokens.accessToken(),
                 "Bearer",
@@ -72,7 +79,7 @@ public class AuthController {
         ResponseCookie refreshCookie = CookieUtils.CreateCookie(
                 "REFRESH_TOKEN", tokens.refreshToken(),
                 "/api/auth/token", Duration.ofDays(7),
-                true,false,"Lax");
+                true, false, "Lax");
 
         response.addHeader(
                 HttpHeaders.SET_COOKIE,
