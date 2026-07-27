@@ -61,6 +61,7 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void revokeRefreshToken(String hashToken) {
         RefreshTokenSession oldRefreshToken = this.findByTokenHash(hashToken)
                 .orElseThrow(
