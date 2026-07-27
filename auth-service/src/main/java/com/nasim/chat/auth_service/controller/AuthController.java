@@ -8,6 +8,7 @@ import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
 import com.nasim.chat.auth_service.service.TokenService;
 import com.nasim.chat.auth_service.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,9 +27,16 @@ public class AuthController {
     private final LoginExchangeCodeService loginExchangeCodeService;
     private final TokenService tokenService;
 
-    public AuthController(LoginExchangeCodeService loginExchangeCodeService, TokenService tokenService) {
+    private final boolean secureCookie;
+
+    public AuthController(
+            LoginExchangeCodeService loginExchangeCodeService,
+            TokenService tokenService,
+            @Value("${security.cookie.secure:false}") boolean secureCookie
+    ) {
         this.loginExchangeCodeService = loginExchangeCodeService;
         this.tokenService = tokenService;
+        this.secureCookie = secureCookie;
     }
 
 
@@ -85,7 +93,7 @@ public class AuthController {
         ResponseCookie refreshCookie = CookieUtils.CreateCookie(
                 "REFRESH_TOKEN", tokens.refreshToken(),
                 "/api/auth/token", Duration.ofDays(7),
-                true, false, "Lax");
+                true, secureCookie, "Lax");
 
         response.addHeader(
                 HttpHeaders.SET_COOKIE,
