@@ -26,26 +26,18 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
         this.appRegisterClientService = appRegisterClientService;
     }
     @Override
-    public boolean isValidToken(String tokenValue){
-        Optional<RefreshTokenSession> refreshTokenSession=  refreshTokenSessionRepository.findNonExpiredByTokenId(tokenValue);
-        return  refreshTokenSession.isPresent();
-    }
-
-    @Override
     @Transactional(readOnly = true)
-    public Optional<RefreshTokenSession> findByTokenId(String tokenId){
-        return refreshTokenSessionRepository.findNonExpiredByTokenId(tokenId);
-
+    public Optional<RefreshTokenSession> findByTokenId(String tokenHash){
+        return refreshTokenSessionRepository.findNonExpiredByHashToken(tokenHash);
     }
-
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createAndRevokeRefreshToken(String userId, String tokenId,String clientId, Instant expiresAt) {
+    public void createAndRevokeRefreshToken(String userId, String hashToken,String clientId, Instant expiresAt) {
         Optional<RefreshTokenSession> preRefreshTokenSession= refreshTokenSessionRepository.
                 findCurrentRefreshTokenByUserIdAndClientId(Long.parseLong(userId),clientId);
 
         RefreshTokenSession refreshSession = new RefreshTokenSession();
-        refreshSession.setTokenId(tokenId);
+        refreshSession.setTokenHash(hashToken);
         AppUser user=appUserService.findById(Long.parseLong(userId));
         refreshSession.setUser(user);
         refreshSession.setExpiresAt(expiresAt);

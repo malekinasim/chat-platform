@@ -7,9 +7,7 @@ import java.util.Optional;
 
 public interface RefreshTokenSessionService {
 
-    boolean isValidToken(String tokenValue);
-
     Optional<RefreshTokenSession> findByTokenId(String tokenId);
 
-    void createAndRevokeRefreshToken(String userId, String tokenId, String clientId, Instant expiresAt);
+    void createAndRevokeRefreshToken(String userId, String hashToken, String clientId, Instant expiresAt);
 }

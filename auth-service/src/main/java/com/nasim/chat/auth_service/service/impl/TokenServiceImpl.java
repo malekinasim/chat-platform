@@ -14,14 +14,20 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class TokenServiceImpl implements TokenService {
     private final JwtEncoder jwtEncoder;
+
     private final String issuer;
     private final RefreshTokenSessionService refreshTokenSessionService;
 
@@ -33,9 +39,10 @@ public class TokenServiceImpl implements TokenService {
         this.issuer = issuer;
         this.refreshTokenSessionService = refreshTokenSessionService;
     }
+
     public String generateAccessToken(
-            String userId , List<String> roles
-    , List<String> allowedAudiences){
+            String userId, List<String> roles
+            , List<String> allowedAudiences) {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -54,70 +61,90 @@ public class TokenServiceImpl implements TokenService {
     }
 
 
-    public GeneratedRefreshToken generateRefreshToken(String userId) {
+    public GeneratedRefreshToken generateRefreshToken() throws NoSuchAlgorithmException {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(Duration.ofDays(7));
-        String tokenId = UUID.randomUUID().toString();
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(issuer)
-                .subject(userId)
-                .audience(List.of("auth-service"))
-                .issuedAt(now)
-                .expiresAt(expiresAt)
-                .id(tokenId)
-                .claim("type", "refresh")
-                .build();
-
-        String tokenValue = jwtEncoder
-                .encode(JwtEncoderParameters.from(claims))
-                .getTokenValue();
+        String rawRefreshToken = secureRandomToken();
+        String refreshTokenHash = bytesToHex(getSHA256(rawRefreshToken));
         return new GeneratedRefreshToken(
-                tokenValue,
-                tokenId,
+                rawRefreshToken,
+                refreshTokenHash,
                 expiresAt
         );
     }
 
+    private byte[] getSHA256(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        return md.digest(input.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    private String secureRandomToken() {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
+    }
+
     @Override
     public AuthenticationTokens generatesAuthenticationTokens(LoginExchangeCode loginData) {
-        String accessToken = this.generateAccessToken(
-                loginData.userId(),
-                loginData.roles(),
-                loginData.allowedAudiences()
-        );
-        GeneratedRefreshToken refreshToken = this.generateRefreshToken(loginData.userId());
-        refreshTokenSessionService.createAndRevokeRefreshToken(
-                loginData.userId(),
-                refreshToken.tokenId(),
-                loginData.clientId(),
-                refreshToken.expiresAt());
-        return new AuthenticationTokens(accessToken,refreshToken.tokenValue());
+        try {
+            String accessToken = this.generateAccessToken(
+                    loginData.userId(),
+                    loginData.roles(),
+                    loginData.allowedAudiences()
+            );
+            GeneratedRefreshToken refreshToken = this.generateRefreshToken();
+
+            refreshTokenSessionService.createAndRevokeRefreshToken(
+                    loginData.userId(),
+                    refreshToken.hashRefreshToken(),
+                    loginData.clientId(),
+                    refreshToken.expiresAt());
+            return new AuthenticationTokens(accessToken, refreshToken.rawRefreshToken());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
     }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AuthenticationTokens generatesAuthenticationTokens(String tokenId) {
-        RefreshTokenSession oldRefreshToken =refreshTokenSessionService.findByTokenId(tokenId).orElseThrow(
-                ()->new CustomException("can nor find valid refreshToken","INVALID_TOKEN_ID")
+        RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenId(tokenId).orElseThrow(
+                () -> new CustomException("can nor find valid refreshToken", "INVALID_TOKEN_ID")
         );
-        String userId=oldRefreshToken.getUser().getId().toString();
-        String clientId=oldRefreshToken.getClient().getClientId();
-        List<String> roles=oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();
-        List<String> allowedAudiences=List.of(oldRefreshToken.getClient().getAudience());
-        String accessToken=this.generateAccessToken(
-                userId,roles,allowedAudiences
-        );
-        GeneratedRefreshToken newRefreshToken = this.generateRefreshToken(userId);
-        refreshTokenSessionService.createAndRevokeRefreshToken(
-                userId,
-                newRefreshToken.tokenId(),
-                clientId,
-                newRefreshToken.expiresAt());
-        return new AuthenticationTokens(accessToken,newRefreshToken.tokenValue());
+        try {
+            String userId = oldRefreshToken.getUser().getId().toString();
+            String clientId = oldRefreshToken.getClient().getClientId();
+            List<String> roles = oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();
+            List<String> allowedAudiences = List.of(oldRefreshToken.getClient().getAudience());
+            String accessToken = this.generateAccessToken(
+                    userId, roles, allowedAudiences
+            );
+            GeneratedRefreshToken newRefreshToken = this.generateRefreshToken();
+            refreshTokenSessionService.createAndRevokeRefreshToken(
+                    userId,
+                    newRefreshToken.hashRefreshToken(),
+                    clientId,
+                    newRefreshToken.expiresAt());
+            return new AuthenticationTokens(accessToken, newRefreshToken.rawRefreshToken());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-
-
-
 }

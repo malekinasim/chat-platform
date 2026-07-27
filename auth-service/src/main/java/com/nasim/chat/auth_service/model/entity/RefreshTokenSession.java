@@ -11,8 +11,8 @@ import java.time.Instant;
 @Getter
 @Setter
 public class RefreshTokenSession extends BaseEntity<Long> {
-    @Column(name = "token_id",unique = true,nullable = false)
-    private String tokenId;
+    @Column(name = "token_hash",unique = true,nullable = false)
+    private String tokenHash;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id",nullable = false)
     private AppUser user;
