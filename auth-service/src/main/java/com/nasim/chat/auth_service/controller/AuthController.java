@@ -56,6 +56,7 @@ public class AuthController {
            AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(rawRefreshToken);
            return this.generateTokenResponse(tokens, response);
        } catch (CustomException e) {
+
                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
        }
 

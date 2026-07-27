@@ -32,9 +32,12 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createAndRevokeRefreshToken(String userId, String hashToken,String clientId, Instant expiresAt) {
-        Optional<RefreshTokenSession> preRefreshTokenSession= refreshTokenSessionRepository.
-                findCurrentRefreshTokenByUserIdAndClientId(Long.parseLong(userId),clientId);
+    public void createAndRevokeRefreshToken(String userId, String hashToken,String clientId, RefreshTokenSession oldRefreshToken, Instant expiresAt) {
+        if(oldRefreshToken==null) {
+            Optional<RefreshTokenSession> preRefreshTokenSession = refreshTokenSessionRepository.
+                    findCurrentRefreshTokenByUserIdAndClientId(Long.parseLong(userId), clientId);
+            oldRefreshToken=preRefreshTokenSession.orElse(null);
+        }
 
         RefreshTokenSession refreshSession = new RefreshTokenSession();
         refreshSession.setTokenHash(hashToken);
@@ -49,11 +52,10 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
         refreshSession.setClient(client);
         refreshTokenSessionRepository.save(refreshSession);
 
-        if(preRefreshTokenSession.isPresent()){
-            RefreshTokenSession preRefreshSession=preRefreshTokenSession.get();
-            preRefreshSession.setReplacedByToken(refreshSession);
-            preRefreshSession.setRevokedAt(Instant.now());
-            refreshTokenSessionRepository.save(preRefreshSession);
+        if(oldRefreshToken!=null){
+            oldRefreshToken.setReplacedByToken(refreshSession);
+            oldRefreshToken.setRevokedAt(Instant.now());
+            refreshTokenSessionRepository.save(oldRefreshToken);
         }
 
     }

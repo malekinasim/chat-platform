@@ -114,6 +114,7 @@ public class TokenServiceImpl implements TokenService {
                     loginData.userId(),
                     refreshToken.hashRefreshToken(),
                     loginData.clientId(),
+                    null,
                     refreshToken.expiresAt());
             return new AuthenticationTokens(accessToken, refreshToken.rawRefreshToken());
         } catch (NoSuchAlgorithmException e) {
@@ -141,8 +142,9 @@ public class TokenServiceImpl implements TokenService {
             GeneratedRefreshToken newRefreshToken = this.generateRefreshToken();
             refreshTokenSessionService.createAndRevokeRefreshToken(
                     userId,
-                    newRefreshToken.hashRefreshToken(),
+                    newRefreshToken.hashRefreshToken(), ,
                     clientId,
+                    oldRefreshToken,
                     newRefreshToken.expiresAt());
             return new AuthenticationTokens(accessToken, newRefreshToken.rawRefreshToken());
         } catch (NoSuchAlgorithmException e) {
