@@ -124,11 +124,13 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AuthenticationTokens generatesAuthenticationTokens(String tokenId) {
-        RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenId(tokenId).orElseThrow(
-                () -> new CustomException("can nor find valid refreshToken", "INVALID_TOKEN_ID")
-        );
-        try {
+    public AuthenticationTokens generatesAuthenticationTokens(String rawRefreshToken) {
+        try{
+        RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenHash(
+                bytesToHex(getSHA256(rawRefreshToken)))
+                .orElseThrow(
+                        () -> new CustomException("can nor find valid refreshToken", "INVALID_TOKEN_HASH")
+                );
             String userId = oldRefreshToken.getUser().getId().toString();
             String clientId = oldRefreshToken.getClient().getClientId();
             List<String> roles = oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();

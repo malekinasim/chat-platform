@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface RefreshTokenSessionService {
 
-    Optional<RefreshTokenSession> findByTokenId(String tokenId);
+    Optional<RefreshTokenSession> findByTokenHash(String tokenId);
 
     void createAndRevokeRefreshToken(String userId, String hashToken, String clientId, Instant expiresAt);
 }
