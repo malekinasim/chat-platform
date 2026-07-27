@@ -1,12 +1,15 @@
 package com.nasim.chat.auth_service.security;
 
 
-import com.nasim.chat.auth_service.service.impl.TokenService;
+import com.nasim.chat.auth_service.service.impl.TokenServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -17,14 +20,14 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpMethod.GET;
 
 @SpringBootTest
 public class AuthorizationProcessTest {
     private final String BASE_URL="http://localhost:8082";
 
     @Autowired
-    private TokenService tokenService;
+    private TokenServiceImpl tokenServiceImpl;
     @Autowired
     private JwtEncoder jwtEncoder;
     @Test
@@ -40,7 +43,7 @@ public class AuthorizationProcessTest {
     @Test
     void validUserTokenShouldAccessChatEndpoint(){
 
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
@@ -57,7 +60,7 @@ public class AuthorizationProcessTest {
     @Test
     void userTokenShouldNotAccessAdminEndpoint(){
 
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
@@ -100,7 +103,7 @@ public class AuthorizationProcessTest {
     @Test
     void validAdminTokenShouldAccessAdminEndpoint() {
 
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-admin-123",
                 List.of("ADMIN"),
                 List.of("chat-client")
@@ -123,7 +126,7 @@ public class AuthorizationProcessTest {
     @Test
     void InValidAdminTokenShouldAccessAdminPresAuthEndpoint() {
 
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
@@ -147,7 +150,7 @@ public class AuthorizationProcessTest {
     @Test
     void validAdminTokenShouldAccessAdminPresAuthEndpoint() {
 
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-admin-123",
                 List.of("ADMIN"),
                 List.of("chat-client")

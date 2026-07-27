@@ -1,33 +1,31 @@
 package com.nasim.chat.auth_service.controller;
 
+import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.dto.AccessTokenResponse;
-import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
+import com.nasim.chat.auth_service.model.dto.AuthenticationTokens;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
-import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
-import com.nasim.chat.auth_service.service.impl.TokenService;
+import com.nasim.chat.auth_service.service.TokenService;
 import com.nasim.chat.auth_service.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final LoginExchangeCodeService loginExchangeCodeService;
-    private  final RefreshTokenSessionService refreshTokenSessionService;
     private final TokenService tokenService;
-
-    public AuthController(LoginExchangeCodeService loginExchangeCodeService, RefreshTokenSessionService refreshTokenSessionService, TokenService tokenService) {
+    public AuthController(LoginExchangeCodeService loginExchangeCodeService, TokenService tokenService) {
         this.loginExchangeCodeService = loginExchangeCodeService;
-        this.refreshTokenSessionService = refreshTokenSessionService;
         this.tokenService = tokenService;
     }
 
@@ -40,33 +38,35 @@ public class AuthController {
         LoginExchangeCode loginData =
                 loginExchangeCodeService.consume(code);
 
-        String accessToken = tokenService.generateAccessToken(
-                loginData.userId(),
-                loginData.roles(),
-                loginData.allowedAudiences()
-        );
-        GeneratedRefreshToken refreshToken = tokenService.generateRefreshToken(
-                loginData.userId());
-        refreshTokenSessionService.createAndRevokeRefreshToken(
-                loginData.userId(),
-                refreshToken.tokenId(),
-                loginData.clientId(),
-                refreshToken.expiresAt());
 
+        AuthenticationTokens tokens=tokenService.generatesAuthenticationTokens(loginData);
         CookieUtils.removedCookie(
                 response,
                 "LOGIN_EXCHANGE_CODE",
                 "/api/auth/token/exchange"
         );
+        return  this.generateTokenResponse(tokens,response);
+    }
+    @PostMapping("/token/refresh")
+    public ResponseEntity<AccessTokenResponse> refreshToken(
+            @CookieValue("REFRESH_TOKEN") String refreshToken ,
+            HttpServletResponse response
+    ) {
+       if(!tokenService.isValidRefreshToken(refreshToken))
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        AuthenticationTokens tokens=tokenService.generatesAuthenticationTokens(refreshToken);
+        return  this.generateTokenResponse(tokens,response);
 
+    }
+    private  ResponseEntity<AccessTokenResponse> generateTokenResponse(AuthenticationTokens tokens,HttpServletResponse response){
         AccessTokenResponse body = new AccessTokenResponse(
-                accessToken,
+                tokens.accessToken(),
                 "Bearer",
                 300
         );
 
         ResponseCookie refreshCookie = CookieUtils.CreateCookie(
-                "REFRESH_TOKEN", refreshToken.tokenValue(),
+                "REFRESH_TOKEN", tokens.refreshToken(),
                 "/api/auth/token", Duration.ofDays(7),
                 true,false,"Lax");
 
@@ -80,14 +80,6 @@ public class AuthController {
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .body(body);
     }
-//TODO
-   /* @PostMapping("/token/refresh")
-    public ResponseEntity<AccessTokenResponse> refreshToken(
-            @CookieValue("REFRESH_TOKEN") String refreshToken ,
-            HttpServletResponse response
-    ) {
-
-    }*/
 
 
 }

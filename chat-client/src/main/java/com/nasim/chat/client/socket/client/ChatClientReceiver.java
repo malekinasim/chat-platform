@@ -1,11 +1,10 @@
 package com.nasim.chat.client.socket.client;
 
-import com.nasim.chat.model.ChatMessage;
 import com.nasim.chat.client.socket.listener.MessageListener;
+import com.nasim.chat.model.ChatMessage;
 import org.springframework.stereotype.Component;
 
-
-import java.io.*;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -10,14 +10,12 @@ import com.nasim.chat.auth_service.model.entity.Status;
 import com.nasim.chat.auth_service.model.entity.UserIdentity;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.UserIdentityService;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import org.springframework.security.authentication.DisabledException;
 @Service
 public class InternalUserServiceImpl implements InternalUserService {
     private final UserIdentityService userIdentityService;

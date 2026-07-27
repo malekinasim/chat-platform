@@ -2,8 +2,7 @@ package com.nasim.chat.client.socket.client;
 
 import com.nasim.chat.model.ChatMessage;
 
-
-import java.io.*;
+import java.io.IOException;
 public interface ChatConnection extends AutoCloseable {
 
     void send(ChatMessage message) throws IOException;

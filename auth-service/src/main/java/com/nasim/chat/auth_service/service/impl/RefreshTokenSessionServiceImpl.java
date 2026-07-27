@@ -25,6 +25,11 @@ public class RefreshTokenSessionServiceImpl implements RefreshTokenSessionServic
         this.appUserService = appUserService;
         this.appRegisterClientService = appRegisterClientService;
     }
+    @Override
+    public boolean isValidToken(String tokenValue){
+        Optional<RefreshTokenSession> refreshTokenSession=  refreshTokenSessionRepository.findNonExpiredByTokenValue(tokenValue);
+        return  refreshTokenSession.isPresent();
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

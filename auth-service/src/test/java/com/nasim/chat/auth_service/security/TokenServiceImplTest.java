@@ -1,11 +1,11 @@
 package com.nasim.chat.auth_service.security;
 
-import com.nasim.chat.auth_service.service.impl.TokenService;
+import com.nasim.chat.auth_service.service.impl.TokenServiceImpl;
+import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.*;
-import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
@@ -15,10 +15,10 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class TokenServiceTest {
+class TokenServiceImplTest {
 
     @Autowired
-    private TokenService tokenService;
+    private TokenServiceImpl tokenServiceImpl;
     @Autowired
     private RSAPublicKey jwtPublicKey;
     @Autowired
@@ -26,7 +26,7 @@ class TokenServiceTest {
 
     @Test
     void shouldGenerateAccessToken() {
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
@@ -37,7 +37,7 @@ class TokenServiceTest {
 
     @Test
     void shouldGenerateAndDecodeAccessToken() {
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")
@@ -57,7 +57,7 @@ class TokenServiceTest {
 
     @Test
     void shouldRejectTokenWithWrongAudience() {
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("notification-service")
@@ -78,7 +78,7 @@ class TokenServiceTest {
     }
     @Test
     void shouldRejectTokenWithWrongIssuer() {
-        String token = tokenService.generateAccessToken(
+        String token = tokenServiceImpl.generateAccessToken(
                 "test-user-123",
                 List.of("USER"),
                 List.of("chat-client")

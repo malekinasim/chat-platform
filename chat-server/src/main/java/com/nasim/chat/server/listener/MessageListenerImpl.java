@@ -1,8 +1,8 @@
 package com.nasim.chat.server.listener;
 
+import com.nasim.chat.model.ChatMessage;
 import com.nasim.chat.server.client.ClientConnection;
 import com.nasim.chat.server.client.ClientRegistryService;
-import com.nasim.chat.model.ChatMessage;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 

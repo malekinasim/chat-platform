@@ -1,8 +1,8 @@
 package com.nasim.chat.client.socket.listener;
 
+import com.nasim.chat.client.handler.Handler;
 import com.nasim.chat.client.handler.IncomingContentHandler;
 import com.nasim.chat.client.handler.WebSocketDeliveryHandler;
-import com.nasim.chat.client.handler.Handler;
 import com.nasim.chat.model.ChatMessage;
 import com.nasim.chat.model.ContentType;
 import com.nasim.chat.model.DeliveryType;
