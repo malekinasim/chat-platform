@@ -65,7 +65,7 @@ public class AuthController {
                tokenService.revokeRefreshToken(rawRefreshToken);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                // An invalid or already-revoked token is treated as logged out
             }
         }
         CookieUtils.removedCookie(response,
