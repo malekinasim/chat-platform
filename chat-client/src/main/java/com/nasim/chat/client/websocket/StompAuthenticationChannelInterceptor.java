@@ -1,5 +1,6 @@
 package com.nasim.chat.client.websocket;
 
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +33,8 @@ public class StompAuthenticationChannelInterceptor implements ChannelInterceptor
                 && StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
             String authorization = headerAccessor.getFirstNativeHeader(HttpHeaders.AUTHORIZATION);
 
-            if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer ")) return null;
+            if (!StringUtils.hasText(authorization) || !authorization.startsWith("Bearer "))
+                throw new AuthenticationCredentialsNotFoundException("Missing or invalid Authorization header");
 
             String rawToken = authorization.substring(7);
             Jwt accessToken = jwtDecoder.decode(rawToken);
