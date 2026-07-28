@@ -18,6 +18,8 @@ public class GroupMembership extends BaseEntity<Long>{
 
     @Enumerated(EnumType.STRING)
     private GroupRole role;
+    @Column(name = "join-at",nullable = false)
     private Instant joinedAt;
+    @Column(name = "active",nullable = false, length = 1)
     private boolean active;
 }
