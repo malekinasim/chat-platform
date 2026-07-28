@@ -26,8 +26,11 @@ public class ChatClientReceiver {
 
     // api and stream mode: listens in background thread
     public void startListeningAsync() {
-        if(!chatConnection.isOpen())
-            System.out.println("Server closed the connection.");
+        if (!chatConnection.isOpen()) {
+            throw new IllegalStateException(
+                    "Cannot send because the chat-server connection is closed"
+            );
+        }
         if (!running.compareAndSet(false, true)) {
             throw new IllegalStateException(
                     "Receiver is already running"

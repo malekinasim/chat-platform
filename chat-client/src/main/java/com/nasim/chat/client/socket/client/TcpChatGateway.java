@@ -15,8 +15,11 @@ public class TcpChatGateway {
     }
 
     public void send(OutgoingChatRequest outgoingChatRequest) {
-        if(!chatConnection.isOpen())
-            System.out.println("Server closed the connection.");
+        if (!chatConnection.isOpen()) {
+                throw new IllegalStateException(
+                        "Cannot send because the chat-server connection is closed"
+                );
+        }
         ChatMessage message = new ChatMessage(
                 outgoingChatRequest.deliveryType(),
                 outgoingChatRequest.contentType(),

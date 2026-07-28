@@ -1,5 +1,6 @@
-package com.nasim.chat.client.websocket;
+package com.nasim.chat.controller;
 
+import com.nasim.chat.client.security.securityUtils;
 import com.nasim.chat.client.socket.client.TcpChatGateway;
 import com.nasim.chat.model.ChatMessageDto;
 import com.nasim.chat.model.OutgoingChatRequest;
@@ -25,16 +26,27 @@ public class ChatBrowserController {
     }
     @MessageMapping("/chat/public")
     public void sendPublic(ChatMessageDto messageDto, Principal principal) {
-          //TODO return fix it after config JWT and OIDC
-        tcpChatGateway.send(OutgoingChatRequest.broadcastText(
-                principal!=null ? principal.getName():"test-user", messageDto.text()));
+        tcpChatGateway.send(
+                OutgoingChatRequest.broadcastText(
+                        securityUtils.authenticatedUsername(principal),
+                        messageDto.text()
+                )
+        );
     }
 
-    @MessageMapping("/chat/room/{room-code}")
-    public void sendToRoom(ChatMessageDto messageDto, @DestinationVariable("room-code") String roomCode, Principal principal) {
-        //TODO return fix it after config JWT and OIDC
-        tcpChatGateway.send(OutgoingChatRequest.groupText(
-                principal!=null ? principal.getName():"test-user",roomCode, messageDto.text()));
+    @MessageMapping("/chat/room/{roomCode}")
+    public void sendToRoom(
+            ChatMessageDto messageDto,
+            @DestinationVariable String roomCode,
+            Principal principal
+    ) {
+        tcpChatGateway.send(
+                OutgoingChatRequest.groupText(
+                        securityUtils.authenticatedUsername(principal),
+                        roomCode,
+                        messageDto.text()
+                )
+        );
     }
 
     @GetMapping("/api/chat/list/user-rooms")
