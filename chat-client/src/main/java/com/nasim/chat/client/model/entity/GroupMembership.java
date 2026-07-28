@@ -15,7 +15,6 @@ public class GroupMembership extends BaseEntity<Long>{
     @ManyToOne(targetEntity = ChatGroup.class,optional = false)
     @JoinColumn(name = "group-id")
     private ChatGroup group;
-
     @Enumerated(EnumType.STRING)
     private GroupRole role;
     @Column(name = "join-at",nullable = false)
