@@ -1,6 +1,6 @@
 package com.nasim.chat.controller;
 
-import com.nasim.chat.client.security.securityUtils;
+import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.socket.client.TcpChatGateway;
 import com.nasim.chat.model.ChatMessageDto;
 import com.nasim.chat.model.OutgoingChatRequest;
@@ -28,7 +28,7 @@ public class ChatBrowserController {
     public void sendPublic(ChatMessageDto messageDto, Principal principal) {
         tcpChatGateway.send(
                 OutgoingChatRequest.broadcastText(
-                        securityUtils.authenticatedUsername(principal),
+                        SecurityUtils.authenticatedUsername(principal),
                         messageDto.text()
                 )
         );
@@ -37,12 +37,12 @@ public class ChatBrowserController {
     @MessageMapping("/chat/room/{roomCode}")
     public void sendToRoom(
             ChatMessageDto messageDto,
-            @DestinationVariable String roomCode,
+            @DestinationVariable(value = "roomCode") String roomCode,
             Principal principal
     ) {
         tcpChatGateway.send(
                 OutgoingChatRequest.groupText(
-                        securityUtils.authenticatedUsername(principal),
+                        SecurityUtils.authenticatedUsername(principal),
                         roomCode,
                         messageDto.text()
                 )

@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.security.Principal;
 
-public class securityUtils {
+public class SecurityUtils {
 
     public static String authenticatedUsername() {
         SecurityContext securityContext=SecurityContextHolder.getContext();
