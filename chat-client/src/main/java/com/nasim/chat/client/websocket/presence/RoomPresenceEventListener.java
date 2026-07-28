@@ -1,5 +1,6 @@
 package com.nasim.chat.client.websocket.presence;
 
+import com.nasim.chat.client.websocket.WebSocketConfig;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
@@ -13,7 +14,7 @@ import java.util.Set;
 @Component
 public class RoomPresenceEventListener {
 
-    private static final String ROOM_TOPIC_PREFIX = "/topic/room/";
+
 
     private final RoomPresenceRegistry presenceRegistry;
 
@@ -33,7 +34,7 @@ public class RoomPresenceEventListener {
         String subscriptionId = accessor.getSubscriptionId();
 
         if (destination == null ||
-                !destination.startsWith(ROOM_TOPIC_PREFIX)) {
+                !destination.startsWith(WebSocketConfig.ROOM_TOPIC_PREFIX)) {
             return;
         }
 
@@ -42,7 +43,7 @@ public class RoomPresenceEventListener {
         }
 
         String roomCode =
-                destination.substring(ROOM_TOPIC_PREFIX.length());
+                destination.substring(WebSocketConfig.ROOM_TOPIC_PREFIX.length());
 
         if (roomCode.isBlank()) {
             return;

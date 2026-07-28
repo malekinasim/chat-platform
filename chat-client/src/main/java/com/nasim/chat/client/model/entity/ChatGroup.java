@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "chat_group", uniqueConstraints =
-        {@UniqueConstraint(name = "uk-chat-group-code",columnNames = "code")})
+        {@UniqueConstraint(name = "uk_chat_group_code",columnNames = "code")})
 @Getter
 @Setter
 public class ChatGroup extends BaseEntity<Long>{

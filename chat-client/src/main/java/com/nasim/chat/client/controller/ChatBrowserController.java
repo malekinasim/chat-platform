@@ -1,6 +1,7 @@
 package com.nasim.chat.client.controller;
 
 import com.nasim.chat.client.security.SecurityUtils;
+import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.client.socket.client.ChatMessageTransport;
 import com.nasim.chat.client.model.dto.ChatMessageDto;
 import com.nasim.chat.client.model.dto.OutgoingChatRequest;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +22,10 @@ import java.util.List;
 @RestController
 public class ChatBrowserController {
     private final ChatMessageTransport chatMessageTransport;
-
-    public ChatBrowserController(ChatMessageTransport chatMessageTransport) {
+    private final GroupMembershipService groupMembershipService;
+    public ChatBrowserController(ChatMessageTransport chatMessageTransport, GroupMembershipService groupMembershipService) {
         this.chatMessageTransport = chatMessageTransport;
+        this.groupMembershipService = groupMembershipService;
     }
     @MessageMapping("/chat/public")
     public void sendPublic(ChatMessageDto messageDto, Principal principal) {
@@ -40,13 +43,19 @@ public class ChatBrowserController {
             @DestinationVariable(value = "roomCode") String roomCode,
             Principal principal
     ) {
+        String userId = SecurityUtils.authenticatedUsername(principal);
+
+        if(!groupMembershipService.hasActiveMembership(userId, roomCode))
+            throw new AuthorizationDeniedException("you don't have valid access right for sending message in this group");
         chatMessageTransport.publish(
-                OutgoingChatRequest.groupText(
-                        SecurityUtils.authenticatedUsername(principal),
-                        roomCode,
-                        messageDto.text()
-                )
-        );
+                    OutgoingChatRequest.groupText(
+                            SecurityUtils.authenticatedUsername(principal),
+                            roomCode,
+                            messageDto.text()
+                    )
+            );
+
+
     }
 
     @GetMapping("/api/chat/list/user-rooms")

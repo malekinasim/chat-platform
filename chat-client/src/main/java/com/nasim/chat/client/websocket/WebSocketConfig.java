@@ -10,10 +10,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
+    public static final String ROOM_TOPIC_PREFIX = "/topic/room/";
     private final StompAuthenticationChannelInterceptor authenticationInterceptor;
-
-    public WebSocketConfig(StompAuthenticationChannelInterceptor authenticationInterceptor) {
+    private final RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor;
+    public WebSocketConfig(StompAuthenticationChannelInterceptor authenticationInterceptor, RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor) {
         this.authenticationInterceptor = authenticationInterceptor;
+        this.roomSubscriptionAuthorizationInterceptor = roomSubscriptionAuthorizationInterceptor;
     }
 
     @Override
@@ -30,6 +32,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-       registration.interceptors(authenticationInterceptor);
+       registration.interceptors(authenticationInterceptor,roomSubscriptionAuthorizationInterceptor);
     }
 }

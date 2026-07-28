@@ -11,4 +11,9 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
     public GroupMembershipServiceImpl(GroupMembershipRepository groupMembershipRepository) {
         this.groupMembershipRepository = groupMembershipRepository;
     }
+
+    @Override
+    public boolean hasActiveMembership(String userId, String roomCode) {
+        return  groupMembershipRepository.existsByUserIdAndGroup_GroupCodeAndActiveTrue(userId,roomCode);
+    }
 }
