@@ -1,7 +1,7 @@
 package com.nasim.chat.client.handler;
 
-import com.nasim.chat.model.ChatMessage;
-import com.nasim.chat.model.ContentType;
+import com.nasim.chat.client.model.dto.ChatMessage;
+import com.nasim.chat.client.model.dto.ContentType;
 import org.springframework.stereotype.Component;
 
 @Component

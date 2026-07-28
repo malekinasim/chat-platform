@@ -1,4 +1,4 @@
-package com.nasim.chat.model;
+package com.nasim.chat.client.model.dto;
 
 public record OutgoingChatRequest(
         DeliveryType deliveryType,

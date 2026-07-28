@@ -1,20 +1,20 @@
 package com.nasim.chat.client.socket.client;
 
-import com.nasim.chat.model.ChatMessage;
-import com.nasim.chat.model.OutgoingChatRequest;
+import com.nasim.chat.client.model.dto.ChatMessage;
+import com.nasim.chat.client.model.dto.OutgoingChatRequest;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
-public class TcpChatGateway {
+public class TcpChatGateway implements ChatMessageTransport {
     private final ChatConnection chatConnection;
 
     public TcpChatGateway(ChatConnection chatConnection) {
         this.chatConnection = chatConnection;
     }
 
-    public void send(OutgoingChatRequest outgoingChatRequest) {
+    public void publish(OutgoingChatRequest outgoingChatRequest) {
         if (!chatConnection.isOpen()) {
                 throw new IllegalStateException(
                         "Cannot send because the chat-server connection is closed"

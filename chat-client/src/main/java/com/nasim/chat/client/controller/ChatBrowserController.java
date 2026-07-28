@@ -1,9 +1,9 @@
-package com.nasim.chat.controller;
+package com.nasim.chat.client.controller;
 
 import com.nasim.chat.client.security.SecurityUtils;
-import com.nasim.chat.client.socket.client.TcpChatGateway;
-import com.nasim.chat.model.ChatMessageDto;
-import com.nasim.chat.model.OutgoingChatRequest;
+import com.nasim.chat.client.socket.client.ChatMessageTransport;
+import com.nasim.chat.client.model.dto.ChatMessageDto;
+import com.nasim.chat.client.model.dto.OutgoingChatRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -19,14 +19,14 @@ import java.util.List;
 @Controller
 @RestController
 public class ChatBrowserController {
-    private final TcpChatGateway tcpChatGateway;
+    private final ChatMessageTransport chatMessageTransport;
 
-    public ChatBrowserController(TcpChatGateway tcpChatGateway) {
-        this.tcpChatGateway = tcpChatGateway;
+    public ChatBrowserController(ChatMessageTransport chatMessageTransport) {
+        this.chatMessageTransport = chatMessageTransport;
     }
     @MessageMapping("/chat/public")
     public void sendPublic(ChatMessageDto messageDto, Principal principal) {
-        tcpChatGateway.send(
+        chatMessageTransport.publish(
                 OutgoingChatRequest.broadcastText(
                         SecurityUtils.authenticatedUsername(principal),
                         messageDto.text()
@@ -40,7 +40,7 @@ public class ChatBrowserController {
             @DestinationVariable(value = "roomCode") String roomCode,
             Principal principal
     ) {
-        tcpChatGateway.send(
+        chatMessageTransport.publish(
                 OutgoingChatRequest.groupText(
                         SecurityUtils.authenticatedUsername(principal),
                         roomCode,
