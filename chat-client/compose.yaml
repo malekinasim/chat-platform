@@ -1,0 +1,47 @@
+services:
+  chat-client-database:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${CHAT_CLIENT_POSTGRES_DB}
+      POSTGRES_USER: ${CHAT_CLIENT_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CHAT_CLIENT_POSTGRES_PASSWORD}
+    volumes:
+      - chat-client-database-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chat-client:
+    build:
+      context: ..
+      dockerfile: chat-client/Dockerfile
+    image: chat-platform/chat-client:local
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      CHAT_SERVER_HOST: chat-server
+      CHAT_SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://chat-client-database:5432/${CHAT_CLIENT_POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${CHAT_CLIENT_POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${CHAT_CLIENT_POSTGRES_PASSWORD}
+
+      SECURITY_JWT_PUBLIC_KEY_FILE: file:/dev-keys/public.pem
+      SECURITY_JWT_ISSUER: http://auth-service:8083
+      SECURITY_JWT_AUDIENCE: chat-client
+    volumes:
+      - ../dev-keys:/dev-keys:ro
+    depends_on:
+      chat-client-database:
+        condition: service_healthy
+      chat-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+
+volumes:
+  chat-client-database-data:

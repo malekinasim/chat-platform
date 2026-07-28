@@ -9,5 +9,5 @@ import java.util.Set;
 
 public interface GroupMembershipRepository extends JpaRepository<GroupMembership,Long> {
 
-    boolean existsByUserIdAndGroup_GroupCodeAndActive(String userId, String groupCode);
+    boolean existsByUserIdAndGroup_GroupCodeAndActiveTrue(String userId, String groupCode);
 }
