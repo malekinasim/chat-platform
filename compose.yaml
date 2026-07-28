@@ -17,5 +17,3 @@ services:
       SERVER_PORT: 8081
     depends_on:
       - auth-service
-volumes:
-  auth-database-data:

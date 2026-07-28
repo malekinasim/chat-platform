@@ -1,6 +1,7 @@
 services:
   chat-client-database:
     image: postgres:17
+    container_name: chat-client-database
     environment:
       POSTGRES_DB: ${CHAT_CLIENT_POSTGRES_DB}
       POSTGRES_USER: ${CHAT_CLIENT_POSTGRES_USER}
