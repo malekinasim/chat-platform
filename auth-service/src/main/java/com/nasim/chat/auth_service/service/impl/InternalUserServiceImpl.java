@@ -49,7 +49,6 @@ public class InternalUserServiceImpl implements InternalUserService {
                             externalSubject,
                             provider,
                             email,
-                            emailVerified,
                             displayName,
                             Instant.now().plusSeconds(ONBOARDING_SESSION_TTL_SECONDS)
                     );
