@@ -25,24 +25,25 @@ public class SecurityConfig {
         return http.authorizeHttpRequests(
                         athurize ->
                                 athurize.requestMatchers(
-                                        "/auth/login",
-                                        "/login/**",
-                                        "/oauth2/**",
-                                        "/api/auth/token/**",
-                                        "/actuator/health"
-                                ).permitAll()
-                                .anyRequest().authenticated()
+                                                "/auth/login",
+                                                "/login/**",
+                                                "/oauth2/**",
+                                                "/api/auth/token/**",
+                                                "/api/auth/onboarding/complete",
+                                                "/actuator/health"
+                                        ).permitAll()
+                                        .anyRequest().authenticated()
 
                 )
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/auth/token/exchange",
-                                "/api/auth/token/refresh", "/api/auth/token/logout","/api/auth/onboarding/complete")
+                                "/api/auth/token/refresh", "/api/auth/token/logout", "/api/auth/onboarding/complete")
                 ).oauth2Login(oauth2 -> oauth2
                         .successHandler(oidcLoginSuccessHandler)
                 ).sessionManagement(
                         session -> session
-                        // 1. Define Creation Policy
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                // 1. Define Creation Policy
+                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .build();
     }

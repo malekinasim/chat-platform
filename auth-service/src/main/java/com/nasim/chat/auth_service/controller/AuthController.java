@@ -37,18 +37,17 @@ public class AuthController {
     private final AppUserService appUserService;
     private final boolean secureCookie;
     private final AppRegisterClientService appRegisterClientService;
-    private final LoginExchangeCodeService exchangeCodeService;
     public AuthController(
             LoginExchangeCodeService loginExchangeCodeService,
             TokenService tokenService, AppUserService appUserService,
-            @Value("${security.cookie.secure:false}") boolean secureCookie, AppRegisterClientService appRegisterClientService, LoginExchangeCodeService exchangeCodeService
+            @Value("${security.cookie.secure:false}") boolean secureCookie,
+            AppRegisterClientService appRegisterClientService
     ) {
         this.loginExchangeCodeService = loginExchangeCodeService;
         this.tokenService = tokenService;
         this.appUserService = appUserService;
         this.secureCookie = secureCookie;
         this.appRegisterClientService = appRegisterClientService;
-        this.exchangeCodeService = exchangeCodeService;
     }
 
 
@@ -165,7 +164,7 @@ public class AuthController {
                 );
 
 
-        String exchangeCode = exchangeCodeService.create(
+        String exchangeCode = loginExchangeCodeService.create(
                 user.getId().toString(),
                 client.getClientId(),
                 user.getRoles().stream().map(Role::getName).toList(),
