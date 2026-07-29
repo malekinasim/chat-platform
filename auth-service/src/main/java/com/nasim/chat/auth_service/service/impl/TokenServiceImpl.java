@@ -7,7 +7,6 @@ import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
 import com.nasim.chat.auth_service.model.entity.RefreshTokenSession;
 import com.nasim.chat.auth_service.model.entity.Role;
-import com.nasim.chat.auth_service.model.entity.Status;
 import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
 import com.nasim.chat.auth_service.service.TokenService;
 import org.springframework.beans.factory.annotation.Value;
@@ -134,7 +133,7 @@ public class TokenServiceImpl implements TokenService {
                         () -> new CustomException("can nor find valid refreshToken",
                                 "INVALID_TOKEN_HASH")
                 );
-            if (oldRefreshToken.getUser().getStatus() != Status.ACTIVE) {
+            if (!oldRefreshToken.getUser().isActive() ) {
                 throw new CustomException(
                         "user is not active",
                         "INACTIVE_USER"

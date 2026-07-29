@@ -1,7 +1,6 @@
 package com.nasim.chat.auth_service.service.impl;
 
 import com.nasim.chat.auth_service.model.entity.AppRegisteredClient;
-import com.nasim.chat.auth_service.model.entity.Status;
 import com.nasim.chat.auth_service.repository.AppRegisterClientRepository;
 import com.nasim.chat.auth_service.service.AppRegisterClientService;
 import org.springframework.stereotype.Service;
@@ -21,8 +20,7 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
             String clientId,
             String audience,
             String callbackUrl,
-            String onboardingUrl,
-            Status status
+            String onboardingUrl
     ) {
         if (appRegisterClientRepository.existsByClientId(clientId)) {
             return;
@@ -31,7 +29,6 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
         AppRegisteredClient client = new AppRegisteredClient();
         client.setClientId(clientId);
         client.setAudience(audience);
-        client.setStatus(status);
         client.setCallbackUrl(callbackUrl);
         client.setOnboardingUrl(onboardingUrl);
 
@@ -40,6 +37,6 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
 
     @Override
     public Optional<AppRegisteredClient> findActiveClient(String clientId) {
-        return appRegisterClientRepository.findByClientIdAndStatus(clientId,Status.ACTIVE);
+        return appRegisterClientRepository.findByClientIdAndActiveTrue(clientId);
     }
 }

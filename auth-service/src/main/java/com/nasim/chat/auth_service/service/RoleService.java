@@ -1,6 +1,8 @@
 package com.nasim.chat.auth_service.service;
 
+import com.nasim.chat.auth_service.model.entity.Role;
+
 public interface RoleService {
 
-    void createRoleIfNotExists(String roleName, String description);
+    Role createRoleIfNotExists(String roleName, String description);
 }

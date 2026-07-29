@@ -7,7 +7,6 @@ public record PendingRegistration(
         String subject,
         String provider,
         String email,
-        boolean emailVerified,
         String displayName,
         Instant expiresAt
 ) {

@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name ="app_users" )
+@Table(name ="app_users",uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_phone_number",columnNames = {"phone_number"})})
 @Getter
 @Setter
 public class AppUser extends BaseEntity<Long>{
@@ -18,9 +20,11 @@ public class AppUser extends BaseEntity<Long>{
     @Column(name = "display_name", length = 200)
     private String displayName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
-    private Status status = Status.ACTIVE;
+    @Column(name = "phone_number", unique = true)
+    private String phoneNumber;
+
+    @Column(name = "phone_verified_at")
+    private Instant phoneVerifiedAt;
 
     @ManyToMany(targetEntity = Role.class,fetch = FetchType.LAZY)
     @JoinTable(
@@ -28,4 +32,5 @@ public class AppUser extends BaseEntity<Long>{
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles= new HashSet<>();
+
 }

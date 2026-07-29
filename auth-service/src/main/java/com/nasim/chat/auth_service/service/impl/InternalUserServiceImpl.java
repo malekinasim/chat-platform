@@ -6,7 +6,6 @@ import com.nasim.chat.auth_service.model.dto.InternalUser;
 import com.nasim.chat.auth_service.model.dto.PendingRegistration;
 import com.nasim.chat.auth_service.model.entity.AppUser;
 import com.nasim.chat.auth_service.model.entity.Role;
-import com.nasim.chat.auth_service.model.entity.Status;
 import com.nasim.chat.auth_service.model.entity.UserIdentity;
 import com.nasim.chat.auth_service.service.InternalUserService;
 import com.nasim.chat.auth_service.service.UserIdentityService;
@@ -38,7 +37,7 @@ public class InternalUserServiceImpl implements InternalUserService {
         Optional<UserIdentity> userIdentity= userIdentityService.findIdentityUserByIssuerAndSubject(issuer,externalSubject);
         if(userIdentity.isPresent()){
            AppUser currentUser= userIdentity.get().getAppUser();
-            if (currentUser.getStatus() != Status.ACTIVE)
+            if (!currentUser.isActive())
                 throw new DisabledException("the current user is not Active");
             return  new AuthenticationResolution(new InternalUser(currentUser.getId().toString(),
                     currentUser.getRoles().stream().map(Role::getName).toList()),

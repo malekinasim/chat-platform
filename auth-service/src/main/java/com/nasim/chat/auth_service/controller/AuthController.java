@@ -1,39 +1,53 @@
 package com.nasim.chat.auth_service.controller;
 
 import com.nasim.chat.auth_service.exceptions.CustomException;
-import com.nasim.chat.auth_service.model.dto.AccessTokenResponse;
-import com.nasim.chat.auth_service.model.dto.AuthenticationTokens;
-import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
+import com.nasim.chat.auth_service.model.dto.*;
+import com.nasim.chat.auth_service.model.entity.AppRegisteredClient;
+import com.nasim.chat.auth_service.model.entity.AppUser;
+import com.nasim.chat.auth_service.model.entity.Role;
+import com.nasim.chat.auth_service.service.AppRegisterClientService;
+import com.nasim.chat.auth_service.service.AppUserService;
 import com.nasim.chat.auth_service.service.LoginExchangeCodeService;
 import com.nasim.chat.auth_service.service.TokenService;
 import com.nasim.chat.auth_service.utils.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
+@Validated
 public class AuthController {
     private final LoginExchangeCodeService loginExchangeCodeService;
     private final TokenService tokenService;
-
+    private final AppUserService appUserService;
     private final boolean secureCookie;
-
+    private final AppRegisterClientService appRegisterClientService;
+    private final LoginExchangeCodeService exchangeCodeService;
     public AuthController(
             LoginExchangeCodeService loginExchangeCodeService,
-            TokenService tokenService,
-            @Value("${security.cookie.secure:false}") boolean secureCookie
+            TokenService tokenService, AppUserService appUserService,
+            @Value("${security.cookie.secure:false}") boolean secureCookie, AppRegisterClientService appRegisterClientService, LoginExchangeCodeService exchangeCodeService
     ) {
         this.loginExchangeCodeService = loginExchangeCodeService;
         this.tokenService = tokenService;
+        this.appUserService = appUserService;
         this.secureCookie = secureCookie;
+        this.appRegisterClientService = appRegisterClientService;
+        this.exchangeCodeService = exchangeCodeService;
     }
 
 
@@ -121,6 +135,34 @@ public class AuthController {
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .body(body);
+    }
+    @PostMapping("token/user_phone/verifies")
+    public void verifyUserPhoneNumber(@RequestParam(name = "phone" ) @Pattern(regexp = "^\\+[1-9]\\d{7,14}$",
+                                                   message = "Phone number must use international format, such as +46701234567") String phoneNumber,
+                                       @SessionAttribute(name = "PENDING_REGISTRATION" ,required = false) PendingRegistration userInfo,
+                                       @SessionAttribute(name = "APP_CLIENT_ID" ,required = false) String clientId,
+                                      HttpServletResponse response) throws IOException {
+         AppUser user= appUserService.findOrCreatUser(phoneNumber,userInfo,clientId);
+
+        AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId)
+                .orElseThrow(
+                        ()-> new CustomException("invalid client id ","INVALID_CLIENT_ID")
+                );
+
+
+        String exchangeCode = exchangeCodeService.create(
+                user.getId().toString(),
+                client.getClientId(),
+                user.getRoles().stream().map(Role::getName).toList(),
+                List.of( client.getAudience())
+        );
+        CookieUtils.removedCookie(response, "JSESSIONID", "/");
+
+        ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,
+                "/api/auth/token/exchange",Duration.ofSeconds(60),true,false,"Lax");
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        response.sendRedirect(client.getCallbackUrl());
+
     }
 
 

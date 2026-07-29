@@ -23,7 +23,4 @@ public class AppRegisteredClient extends BaseEntity<Integer>{
     @Column(name = "onboarding_url", nullable = false)
     private String onboardingUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status",nullable = false)
-    private Status status=Status.ACTIVE;
 }

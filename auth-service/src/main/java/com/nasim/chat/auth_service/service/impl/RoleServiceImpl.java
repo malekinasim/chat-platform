@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Optional;
+
 @Service
 public class RoleServiceImpl implements RoleService {
 
@@ -18,13 +20,14 @@ public class RoleServiceImpl implements RoleService {
 
     @Transactional
     @Override
-    public void createRoleIfNotExists(String roleName, String description) {
-        if (!roleRepository.existsByName(roleName)) {
+    public Role createRoleIfNotExists(String roleName, String description) {
+        return roleRepository.findByName(roleName).orElseGet(()->{
             Role role = new Role();
             role.setName(roleName);
             if(StringUtils.hasText(description))
                 role.setDescription(description);
             roleRepository.save(role);
-        }
+            return  role;
+        });
     }
 }
