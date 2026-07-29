@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add your phone number</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #172033;
+            background: #f4f7fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                    radial-gradient(circle at top left, #dfe8ff 0, transparent 38%),
+                    #f4f7fb;
+        }
+
+        main {
+            width: min(100%, 440px);
+            padding: 40px;
+            border: 1px solid #e3e8f2;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 18px 50px rgba(33, 52, 90, 0.12);
+        }
+
+        .step {
+            margin: 0 0 12px;
+            color: #516cff;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 6vw, 2.25rem);
+            line-height: 1.15;
+        }
+
+        .description {
+            margin: 14px 0 28px;
+            color: #667085;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 650;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #cfd6e4;
+            border-radius: 11px;
+            font: inherit;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        input:focus {
+            border-color: #516cff;
+            box-shadow: 0 0 0 4px rgba(81, 108, 255, 0.14);
+        }
+
+        .hint {
+            margin: 8px 0 0;
+            color: #7c8699;
+            font-size: 0.88rem;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 14px 18px;
+            border: 0;
+            border-radius: 11px;
+            color: #ffffff;
+            background: #516cff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4058dc;
+        }
+
+        button:focus-visible {
+            outline: 3px solid rgba(81, 108, 255, 0.35);
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <p class="step">One last step</p>
+    <h1>Add your phone number</h1>
+    <p class="description">
+        Enter your number in international format to finish creating your account.
+    </p>
+
+    <form id="phone-form" method="post">
+        <label for="phone">Phone number</label>
+        <input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputmode="tel"
+                autocomplete="tel"
+                placeholder="+46701234567"
+                pattern="\+[1-9][0-9]{7,14}"
+                title="Use international format, such as +46701234567"
+                required
+                autofocus>
+        <p class="hint">Example: +46701234567</p>
+
+        <button type="submit">Continue</button>
+    </form>
+</main>
+
+<script>
+    const authServiceUrl = `${window.location.protocol}//${window.location.hostname}:8083`;
+    document.getElementById("phone-form").action =
+        `${authServiceUrl}/api/auth/onboarding/complete`;
+</script>
+</body>
+</html>

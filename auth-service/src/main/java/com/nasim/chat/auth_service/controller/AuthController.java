@@ -157,12 +157,12 @@ public class AuthController {
                     "REGISTRATION_SESSION_EXPIRED"
             );
         }
-        AppUser user= appUserService.completeRegistration(phoneNumber,userInfo);
-
         AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId)
                 .orElseThrow(
                         ()-> new CustomException("invalid client id ","INVALID_CLIENT_ID")
                 );
+
+        AppUser user= appUserService.completeRegistration(phoneNumber,userInfo);
 
 
         String exchangeCode = loginExchangeCodeService.create(
