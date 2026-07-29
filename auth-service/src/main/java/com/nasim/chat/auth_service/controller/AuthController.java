@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -136,13 +137,27 @@ public class AuthController {
                 .header(HttpHeaders.PRAGMA, "no-cache")
                 .body(body);
     }
-    @PostMapping("token/user_phone/verifies")
-    public void verifyUserPhoneNumber(@RequestParam(name = "phone" ) @Pattern(regexp = "^\\+[1-9]\\d{7,14}$",
+    @PostMapping("/onboarding/complete")
+    public void completeRegistration(@RequestParam(name = "phone" ) @Pattern(regexp = "^\\+[1-9]\\d{7,14}$",
                                                    message = "Phone number must use international format, such as +46701234567") String phoneNumber,
                                        @SessionAttribute(name = "PENDING_REGISTRATION" ,required = false) PendingRegistration userInfo,
                                        @SessionAttribute(name = "APP_CLIENT_ID" ,required = false) String clientId,
-                                      HttpServletResponse response) throws IOException {
-         AppUser user= appUserService.findOrCreatUser(phoneNumber,userInfo,clientId);
+                                      HttpServletResponse response,HttpServletRequest request) throws IOException {
+
+        if (userInfo == null || clientId == null) {
+            throw new CustomException(
+                    "The registration session has expired",
+                    "REGISTRATION_SESSION_EXPIRED"
+            );
+        }
+
+        if (userInfo.expiresAt().isBefore(Instant.now())) {
+            throw new CustomException(
+                    "The registration session has expired",
+                    "REGISTRATION_SESSION_EXPIRED"
+            );
+        }
+        AppUser user= appUserService.completeRegistration(phoneNumber,userInfo,clientId);
 
         AppRegisteredClient client= appRegisterClientService.findActiveClient(clientId)
                 .orElseThrow(
@@ -156,6 +171,12 @@ public class AuthController {
                 user.getRoles().stream().map(Role::getName).toList(),
                 List.of( client.getAudience())
         );
+        HttpSession session = request.getSession(false);
+
+        if (session != null) {
+            session.invalidate();
+        }
+
         CookieUtils.removedCookie(response, "JSESSIONID", "/");
 
         ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,

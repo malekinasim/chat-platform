@@ -1,5 +1,6 @@
 package com.nasim.chat.auth_service.service.impl;
 
+import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.entity.AppUser;
 import com.nasim.chat.auth_service.model.entity.UserIdentity;
 import com.nasim.chat.auth_service.repository.UserIdentityRepository;
@@ -23,8 +24,17 @@ public class UserIdentityServiceImpl implements UserIdentityService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public UserIdentity createUserIDentity(String issuer, String subject, String provider, String email, AppUser appUser) {
-       UserIdentity userIdentity=new UserIdentity();
+    public UserIdentity createUserIdentity(String issuer, String subject, String provider, String email, AppUser appUser) {
+        if (userIdentityRepository.existsByIssuerAndSubject(
+                issuer,
+                subject
+        )) {
+            throw new CustomException(
+                    "This identity is already linked",
+                    "IDENTITY_ALREADY_LINKED"
+            );
+        }
+        UserIdentity userIdentity=new UserIdentity();
        userIdentity.setIssuer(issuer);
        userIdentity.setSubject(subject);
        userIdentity.setProvider(provider);

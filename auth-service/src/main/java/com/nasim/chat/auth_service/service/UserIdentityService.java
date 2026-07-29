@@ -9,5 +9,5 @@ public interface UserIdentityService {
 
     Optional<UserIdentity> findIdentityUserByIssuerAndSubject(String issuer, String externalSubject);
 
-    UserIdentity createUserIDentity(String issuer, String subject, String provider, String email, AppUser appUser);
+    UserIdentity createUserIdentity(String issuer, String subject, String provider, String email, AppUser appUser);
 }

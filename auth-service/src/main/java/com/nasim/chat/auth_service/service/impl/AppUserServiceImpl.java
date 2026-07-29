@@ -37,7 +37,7 @@ public class AppUserServiceImpl implements AppUserService {
    @Override
    public AppUser createAppUser(String name, String email, String phoneNumber){
         AppUser newUser = new AppUser();
-        newUser.setPhoneVerifiedAt(Instant.now());
+        newUser.setPhoneVerifiedAt(Instant.now()); // TODO: Replace temporary trusted-phone assumption with real OTP verification.
         newUser.setPhoneNumber(phoneNumber);
         newUser.setEmail(email);
         newUser.setDisplayName(name);
@@ -48,12 +48,12 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AppUser findOrCreatUser(String phoneNumber, PendingRegistration userInfo, String clientId) {
+    public AppUser completeRegistration(String phoneNumber, PendingRegistration userInfo, String clientId) {
       AppUser appUser=  appUserRepository.findByPhoneNumber(phoneNumber).orElseGet(
               ()-> this.createAppUser(userInfo.displayName(),userInfo.email(),phoneNumber)
       );
-        UserIdentity identity=new UserIdentity();
-        userIdentityService.createUserIDentity(
+
+        userIdentityService.createUserIdentity(
                 userInfo.issuer(),
                 userInfo.subject(),
                 userInfo.provider(),

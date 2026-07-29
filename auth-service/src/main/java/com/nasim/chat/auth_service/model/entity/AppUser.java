@@ -20,7 +20,7 @@ public class AppUser extends BaseEntity<Long>{
     @Column(name = "display_name", length = 200)
     private String displayName;
 
-    @Column(name = "phone_number", unique = true)
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
     @Column(name = "phone_verified_at")
