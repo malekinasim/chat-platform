@@ -48,7 +48,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AppUser completeRegistration(String phoneNumber, PendingRegistration userInfo, String clientId) {
+    public AppUser completeRegistration(String phoneNumber, PendingRegistration userInfo) {
       AppUser appUser=  appUserRepository.findByPhoneNumber(phoneNumber).orElseGet(
               ()-> this.createAppUser(userInfo.displayName(),userInfo.email(),phoneNumber)
       );
