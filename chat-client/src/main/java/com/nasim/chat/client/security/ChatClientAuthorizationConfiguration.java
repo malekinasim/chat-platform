@@ -9,7 +9,13 @@ public class ChatClientAuthorizationConfiguration {
     @Bean
     ResourceServerAuthorizationRules chatAuthorizationRules() {
         return authorize -> authorize
-                .requestMatchers("/health","/login","/auth/callback","/ws/chat").permitAll()
+                .requestMatchers(
+                        "/health",
+                        "/login",
+                        "/auth/callback",
+                        "/ws/chat",
+                        "/onboarding/**"
+                ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/chat/**").hasRole("USER");
 

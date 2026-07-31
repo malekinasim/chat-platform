@@ -37,7 +37,9 @@ public class SecurityConfig {
                 )
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/auth/token/exchange",
-                                "/api/auth/token/refresh", "/api/auth/token/logout", "/api/auth/onboarding/complete")
+                                "/api/auth/token/refresh",
+                                "/api/auth/token/logout",
+                                "/api/auth/onboarding/complete")
                 ).oauth2Login(oauth2 -> oauth2
                         .successHandler(oidcLoginSuccessHandler)
                 ).sessionManagement(
