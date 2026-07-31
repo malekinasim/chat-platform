@@ -76,11 +76,8 @@ public class OidcLoginSuccessHandler
                         oidcUser.getSubject(),
                         oidcUser.getEmail(),
                         oidcUser.getFullName(),
-
                         Boolean.TRUE.equals(oidcUser.getEmailVerified()),
-
                         oidcUser.getIssuer().getHost()
-
                 );
         if (authenticationResolution.authenticationStatus()
                 == AuthenticationStatus.EXISTING_USER) {
@@ -138,6 +135,5 @@ public class OidcLoginSuccessHandler
             session.invalidate();
         }
         CookieUtils.removedCookie(response, "JSESSIONID", "/");
-
     }
 }
