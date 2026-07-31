@@ -136,8 +136,40 @@
 
 <script>
     const authServiceUrl = `${window.location.protocol}//${window.location.hostname}:8083`;
-    document.getElementById("phone-form").action =
-        `${authServiceUrl}/api/auth/onboarding/complete`;
+   const form = document.getElementById("phone-form");
+
+    form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const body = new URLSearchParams(
+        new FormData(form)
+    );
+
+    const response = await fetch(
+         `${authServiceUrl}/api/auth/onboarding/complete`,
+        {
+            method: "POST",
+            body,
+            credentials: "include"
+        }
+    );
+const responseBody = await response.text();
+console.log(response.status, responseBody);
+    if (!response.ok) {
+        // Display the registration error.
+        return;
+    }
+
+    const tokenResponse = await response.json();
+
+    // Keep it in application memory, not localStorage.
+    window.accessToken = tokenResponse.accessToken;
+
+    // Initialize the chat application here.
+});
+
+
+
 </script>
 </body>
 </html>

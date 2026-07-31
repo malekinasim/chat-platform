@@ -137,12 +137,12 @@ public class AuthController {
                 .body(body);
     }
     @PostMapping("/onboarding/complete")
-    public void completeRegistration(@RequestParam(name = "phone" )
+    public ResponseEntity<AccessTokenResponse> completeRegistration(@RequestParam(name = "phone" )
                                          @Pattern(regexp = "^\\+[1-9]\\d{7,14}$",
                                                    message = "Phone number must use international format, such as +46701234567") String phoneNumber,
-                                       @SessionAttribute(name = "PENDING_REGISTRATION" ,required = false) PendingRegistration userInfo,
-                                       @SessionAttribute(name = "APP_CLIENT_ID" ,required = false) String clientId,
-                                      HttpServletResponse response,HttpServletRequest request) throws IOException {
+                                                                    @SessionAttribute(name = "PENDING_REGISTRATION" ,required = false) PendingRegistration userInfo,
+                                                                    @SessionAttribute(name = "APP_CLIENT_ID" ,required = false) String clientId,
+                                                                    HttpServletResponse response, HttpServletRequest request) throws IOException {
 
         if (userInfo == null || clientId == null) {
             throw new CustomException(
@@ -171,19 +171,15 @@ public class AuthController {
                 user.getRoles().stream().map(Role::getName).toList(),
                 List.of( client.getAudience())
         );
-        HttpSession session = request.getSession(false);
 
+
+        AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(exchangeCode);
+        HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
 
-        CookieUtils.removedCookie(response, "JSESSIONID", "/");
-
-        ResponseCookie cookie = CookieUtils.CreateCookie("LOGIN_EXCHANGE_CODE", exchangeCode,
-                "/api/auth/token/exchange",Duration.ofSeconds(60),true,false,"Lax");
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        response.sendRedirect("/api/auth/token/exchange");
-
+        return this.generateTokenResponse(tokens, response);
     }
 
 
