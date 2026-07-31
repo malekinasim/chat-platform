@@ -103,15 +103,24 @@ public class OidcLoginSuccessHandler
             response.sendRedirect(client.getCallbackUrl());
         }else {
 
-            HttpSession oidcSession = request.getSession(false);
+            /*HttpSession oidcSession = request.getSession(false);
 
             if (oidcSession != null) {
                 oidcSession.invalidate();
             }
 
-            SecurityContextHolder.clearContext();
 
-            HttpSession onboardingSession = request.getSession(true);
+
+            HttpSession onboardingSession = request.getSession(true);*/
+
+            HttpSession onboardingSession = request.getSession(false);
+
+            if (onboardingSession == null) {
+                throw new CustomException(
+                        "OIDC session is missing",
+                        "OIDC_SESSION_MISSING"
+                );
+            }
 
             onboardingSession.setMaxInactiveInterval(
                     InternalUserServiceImpl.ONBOARDING_SESSION_TTL_SECONDS
@@ -125,7 +134,7 @@ public class OidcLoginSuccessHandler
                     PENDING_REGISTRATION,
                     authenticationResolution.pendingRegistration()
             );
-
+            SecurityContextHolder.clearContext();
             response.sendRedirect(client.getOnboardingUrl());
         }
 

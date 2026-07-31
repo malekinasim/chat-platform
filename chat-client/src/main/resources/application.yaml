@@ -5,6 +5,13 @@ chat:
 
 server:
   port: ${SERVER_PORT:8082}
+  servlet:
+    session:
+      cookie:
+        name: CLIENT_CHAT_SESSION
+        path: /
+        http-only: true
+        same-site: lax
 
 # chat-client
 security:

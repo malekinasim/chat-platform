@@ -1,5 +1,12 @@
 server:
   port: ${SERVER_PORT:8083}
+  servlet:
+    session:
+      cookie:
+        name: AUTH_SESSION
+        path: /
+        http-only: true
+        same-site: lax
 spring:
   application:
     name: auth-service
