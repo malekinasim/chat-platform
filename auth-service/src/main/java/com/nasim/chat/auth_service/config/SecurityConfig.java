@@ -25,61 +25,54 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CorsConfigurationSource corsConfigurationSource
+    ) throws Exception {
 
-        return http.authorizeHttpRequests(
-                        athurize ->
-                                athurize.requestMatchers(
-                                                "/auth/login",
-                                                "/login/**",
-                                                "/oauth2/**",
-                                                "/api/auth/token/**",
-                                                "/api/auth/onboarding/complete",
-                                                "/actuator/health"
-                                        ).permitAll()
-                                        .anyRequest().authenticated()
-
+        return http
+                .cors(cors ->
+                        cors.configurationSource(corsConfigurationSource)
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/auth/login",
+                                "/login/**",
+                                "/oauth2/**",
+                                "/api/auth/token/**",
+                                "/api/auth/onboarding/complete",
+                                "/actuator/health"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/token/exchange",
+                        .ignoringRequestMatchers(
+                                "/api/auth/token/exchange",
                                 "/api/auth/token/refresh",
                                 "/api/auth/token/logout",
-                                "/api/auth/onboarding/complete")
-                ).oauth2Login(oauth2 -> oauth2
-                        .successHandler(oidcLoginSuccessHandler)
-                ).sessionManagement(
-                        session -> session
-                                // 1. Define Creation Policy
-                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                "/api/auth/onboarding/complete"
+                        )
+                )
+                .oauth2Login(oauth2 ->
+                        oauth2.successHandler(oidcLoginSuccessHandler)
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.IF_REQUIRED
+                        )
                 )
                 .build();
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:8082")
-        );
-
-        configuration.setAllowedMethods(
-                List.of("POST", "OPTIONS")
-        );
-
-        configuration.setAllowedHeaders(
-                List.of("Content-Type", "Accept")
-        );
-
+        configuration.setAllowedOrigins(List.of("http://localhost:8082"));
+        configuration.setAllowedMethods(List.of("POST", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration(
-                "/api/auth/**",
-                configuration
-        );
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/auth/**", configuration);
         return source;
     }
 }

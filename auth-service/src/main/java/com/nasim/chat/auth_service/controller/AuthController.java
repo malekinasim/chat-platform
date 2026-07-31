@@ -146,7 +146,7 @@ public class AuthController {
 
         if (userInfo == null || clientId == null) {
             throw new CustomException(
-                    "The registration session has expired",
+                    "The registration session has expiredn %s %s".formatted(userInfo,clientId),
                     "REGISTRATION_SESSION_EXPIRED"
             );
         }

@@ -153,14 +153,14 @@
             credentials: "include"
         }
     );
-const responseBody = await response.text();
+const responseBody = await response.json();
 console.log(response.status, responseBody);
     if (!response.ok) {
         // Display the registration error.
         return;
     }
 
-    const tokenResponse = await response.json();
+    const tokenResponse = responseBody;
 
     // Keep it in application memory, not localStorage.
     window.accessToken = tokenResponse.accessToken;
