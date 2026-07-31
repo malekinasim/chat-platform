@@ -5,6 +5,8 @@ import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.dto.AuthenticationTokens;
 import com.nasim.chat.auth_service.model.dto.GeneratedRefreshToken;
 import com.nasim.chat.auth_service.model.dto.LoginExchangeCode;
+import com.nasim.chat.auth_service.model.entity.AppRegisteredClient;
+import com.nasim.chat.auth_service.model.entity.AppUser;
 import com.nasim.chat.auth_service.model.entity.RefreshTokenSession;
 import com.nasim.chat.auth_service.model.entity.Role;
 import com.nasim.chat.auth_service.service.RefreshTokenSessionService;
@@ -23,6 +25,8 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class TokenServiceImpl implements TokenService {
@@ -126,14 +130,14 @@ public class TokenServiceImpl implements TokenService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AuthenticationTokens generatesAuthenticationTokens(String rawRefreshToken) {
-        try{
-             RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenHash(
-                bytesToHex(getSHA256(rawRefreshToken)))
-                .orElseThrow(
-                        () -> new CustomException("can nor find valid refreshToken",
-                                "INVALID_TOKEN_HASH")
-                );
-            if (!oldRefreshToken.getUser().isActive() ) {
+        try {
+            RefreshTokenSession oldRefreshToken = refreshTokenSessionService.findByTokenHash(
+                            bytesToHex(getSHA256(rawRefreshToken)))
+                    .orElseThrow(
+                            () -> new CustomException("can nor find valid refreshToken",
+                                    "INVALID_TOKEN_HASH")
+                    );
+            if (!oldRefreshToken.getUser().isActive()) {
                 throw new CustomException(
                         "user is not active",
                         "INACTIVE_USER"
@@ -165,8 +169,30 @@ public class TokenServiceImpl implements TokenService {
             refreshTokenSessionService.revokeRefreshToken(bytesToHex(getSHA256(rawRefreshToken)));
 
         } catch (NoSuchAlgorithmException e) {
-            throw  new CustomException("can nor find valid refreshToken",
+            throw new CustomException("can nor find valid refreshToken",
                     "INVALID_TOKEN_HASH");
+        }
+    }
+
+    @Override
+    public AuthenticationTokens generatesAuthenticationTokens(AppUser user, AppRegisteredClient client) {
+        try {
+            String accessToken = this.generateAccessToken(
+                    user.getId().toString(),
+                    user.getRoles().stream().map(Role::getName).toList(),
+                    List.of(client.getAudience())
+            );
+            GeneratedRefreshToken refreshToken = this.generateRefreshToken();
+
+            refreshTokenSessionService.createAndRevokeRefreshToken(
+                    user.getId().toString(),
+                    refreshToken.hashRefreshToken(),
+                    client.getClientId(),
+                    null,
+                    refreshToken.expiresAt());
+            return new AuthenticationTokens(accessToken, refreshToken.rawRefreshToken());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.nasim.chat.auth_service.config;
 
-
 import com.nasim.chat.auth_service.handler.OidcLoginSuccessHandler;
+import com.nasim.chat.auth_service.service.AppRegisterClientService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,7 +28,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CorsConfigurationSource corsConfigurationSource
-    ) throws Exception {
+    ) {
 
         return http
                 .cors(cors ->
@@ -65,14 +65,27 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:8082"));
-        configuration.setAllowedMethods(List.of("POST", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Content-Type", "Accept"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/auth/**", configuration);
-        return source;
+    CorsConfigurationSource corsConfigurationSource(
+           AppRegisterClientService appClientService
+    ) {
+        return request -> {
+            String requestOrigin = request.getHeader("Origin");
+            if (requestOrigin == null) {
+                return null;
+            }
+            boolean allowed = appClientService.isAllowedOrigin(requestOrigin);
+            if (!allowed) {
+                return null;
+            }
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(List.of(requestOrigin));
+            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+            configuration.setAllowCredentials(true);
+           // return configuration;
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/api/auth/**", configuration);
+            return source.getCorsConfiguration(request);
+        };
     }
 }

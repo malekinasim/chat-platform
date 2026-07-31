@@ -23,4 +23,7 @@ public class AppRegisteredClient extends BaseEntity<Integer>{
     @Column(name = "onboarding_url", nullable = false)
     private String onboardingUrl;
 
+    @Column(name = "origin_url", nullable = false)
+    private String origin;
+
 }

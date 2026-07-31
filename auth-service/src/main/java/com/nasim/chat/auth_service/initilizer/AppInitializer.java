@@ -24,6 +24,8 @@ public class AppInitializer implements ApplicationRunner {
         appRegisterClientService.registerClientIfNotExists(
                "chat-client","chat-client",
                 "http://localhost:8082/auth/callback",
-        "http://localhost:8082/onboarding/phone");
+        "http://localhost:8082/onboarding/phone",
+                "http://localhost:8082"
+                );
     }
 }

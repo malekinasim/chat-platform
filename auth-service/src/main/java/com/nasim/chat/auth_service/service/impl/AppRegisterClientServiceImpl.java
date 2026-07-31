@@ -8,20 +8,15 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class AppAppRegisterClientServiceImpl implements AppRegisterClientService {
+public class AppRegisterClientServiceImpl implements AppRegisterClientService {
     private final AppRegisterClientRepository appRegisterClientRepository;
 
-    public AppAppRegisterClientServiceImpl(AppRegisterClientRepository appRegisterClientRepository) {
+    public AppRegisterClientServiceImpl(AppRegisterClientRepository appRegisterClientRepository) {
         this.appRegisterClientRepository = appRegisterClientRepository;
     }
 
     @Override
-    public void registerClientIfNotExists(
-            String clientId,
-            String audience,
-            String callbackUrl,
-            String onboardingUrl
-    ) {
+    public void registerClientIfNotExists(String clientId, String audience, String callbackUrl, String onboardingUrl, String originUrl) {
         if (appRegisterClientRepository.existsByClientId(clientId)) {
             return;
         }
@@ -31,12 +26,15 @@ public class AppAppRegisterClientServiceImpl implements AppRegisterClientService
         client.setAudience(audience);
         client.setCallbackUrl(callbackUrl);
         client.setOnboardingUrl(onboardingUrl);
-
+        client.setOrigin(originUrl);
         appRegisterClientRepository.save(client);
     }
 
     @Override
     public Optional<AppRegisteredClient> findActiveClient(String clientId) {
         return appRegisterClientRepository.findByClientIdAndActiveTrue(clientId);
+    }
+    public boolean isAllowedOrigin(String origin) {
+        return appRegisterClientRepository.existsByOriginContaining(origin);
     }
 }

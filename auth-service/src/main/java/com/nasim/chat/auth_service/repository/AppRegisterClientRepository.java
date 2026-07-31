@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface AppRegisterClientRepository extends JpaRepository<AppRegisteredClient,Integer> {
     Optional<AppRegisteredClient> findByClientIdAndActiveTrue(String clientId);
     boolean existsByClientId(String clientId);
+    boolean existsByOriginContaining(String origin);
 }

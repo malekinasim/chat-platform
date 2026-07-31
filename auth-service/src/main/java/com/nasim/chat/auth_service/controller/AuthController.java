@@ -164,16 +164,7 @@ public class AuthController {
 
         AppUser user= appUserService.completeRegistration(phoneNumber,userInfo);
 
-
-        String exchangeCode = loginExchangeCodeService.create(
-                user.getId().toString(),
-                client.getClientId(),
-                user.getRoles().stream().map(Role::getName).toList(),
-                List.of( client.getAudience())
-        );
-
-
-        AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(exchangeCode);
+        AuthenticationTokens tokens = tokenService.generatesAuthenticationTokens(user,client);
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
