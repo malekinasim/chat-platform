@@ -18,11 +18,12 @@ public class ChatClientAuthorizationConfiguration {
                 .requestMatchers(
                         "/health",
                         "/login",
-                        "/ws/chat",
-                        "/onboarding/**",
                         "/auth/callback",
-                        "/css/**",
-                        "/js/**"
+                        "/auth-callback.html",
+                        "/onboarding/**",
+                        "/onboarding-phone.html",
+                        "/ws/chat"
+
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/chat/**").hasRole("USER");

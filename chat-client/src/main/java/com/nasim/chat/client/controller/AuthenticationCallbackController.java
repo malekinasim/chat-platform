@@ -8,6 +8,6 @@ public class AuthenticationCallbackController {
 
     @GetMapping("/auth/callback")
     public String authenticationCallback() {
-        return "forward:/chatClient.html";
+        return "forward:/auth-callback.html";
     }
 }

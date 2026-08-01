@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Completing login</title>
+</head>
+<body>
+
+<p id="status">Completing login...</p>
+
+<!-- Keep your existing STOMP import if you already have one -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+<script>
+    const LOGIN_URL =
+        "http://localhost:8083/auth/login?app_client_id=chat-client";
+
+    let accessToken = null;
+    let stompClient = null;
+
+    async function exchangeLoginCode() {
+        const response = await fetch(
+            "http://localhost:8083/api/auth/token/exchange",
+            {
+                method: "POST",
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Token exchange failed: ${response.status}`
+            );
+        }
+
+        return response.json();
+    }
+
+    function connectToChat(token) {
+        stompClient = new StompJs.Client({
+            brokerURL: "ws://localhost:8080/ws/chat",
+
+            connectHeaders: {
+                Authorization: `Bearer ${token}`
+            },
+
+            onConnect: () => {
+                console.log("STOMP connection established");
+
+                document.getElementById("status").textContent =
+                    "Connected to chat successfully.";
+
+                stompClient.subscribe(
+                    "/topic/public",
+                    message => {
+                        console.log(JSON.parse(message.body));
+                    }
+                );
+            },
+
+            onStompError: frame => {
+                console.error(
+                    "STOMP error:",
+                    frame.headers["message"],
+                    frame.body
+                );
+
+                document.getElementById("status").textContent =
+                    "Could not connect to chat.";
+            },
+
+            onWebSocketError: error => {
+                console.error("WebSocket error:", error);
+            }
+        });
+
+        stompClient.activate();
+    }
+
+    async function startAuthentication() {
+        const statusElement =
+            document.getElementById("status");
+
+        try {
+            const tokenResponse =
+                await exchangeLoginCode();
+
+            accessToken = tokenResponse.accessToken;
+
+            if (!accessToken) {
+                throw new Error(
+                    "The exchange response did not contain an access token."
+                );
+            }
+
+            console.log(
+                "Token type:",
+                tokenResponse.tokenType
+            );
+
+            console.log(
+                "Expires in:",
+                tokenResponse.expiresIn
+            );
+
+            statusElement.textContent =
+                "Login completed. Connecting to chat...";
+
+            connectToChat(accessToken);
+
+        } catch (error) {
+            console.error(
+                "Authentication failed:",
+                error
+            );
+
+            statusElement.textContent =
+                "Login could not be completed. Redirecting...";
+
+            window.location.replace(LOGIN_URL);
+        }
+    }
+
+    startAuthentication();
+</script>
+
+</body>
+</html>
