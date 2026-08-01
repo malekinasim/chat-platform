@@ -1,5 +1,7 @@
 package com.nasim.chat.client.websocket;
 
+import com.nasim.chat.client.websocket.channelInterceptor.RoomSubscriptionAuthorizationInterceptor;
+import com.nasim.chat.client.websocket.channelInterceptor.StompAuthenticationChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

@@ -1,6 +1,7 @@
-package com.nasim.chat.client.websocket;
+package com.nasim.chat.client.websocket.channelInterceptor;
 
 import com.nasim.chat.client.service.GroupMembershipService;
+import com.nasim.chat.client.websocket.WebSocketConfig;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

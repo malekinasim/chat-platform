@@ -4,6 +4,8 @@ import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.resolver.CookieBearerTokenResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +19,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
@@ -80,6 +85,11 @@ public class JwtResourceServerConfiguration {
 
         };
     }
+    CorsConfigurationSource defaultCorsConfiguration() {
+        return (request -> {
+            return new UrlBasedCorsConfigurationSource().getCorsConfiguration(request);
+        });
+    }
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(
@@ -87,11 +97,14 @@ public class JwtResourceServerConfiguration {
             JwtDecoder jwtDecoder,
             BearerTokenResolver bearerTokenResolver,
             JwtAuthenticationConverter jwtAuthenticationConverter,
-            ObjectProvider<ResourceServerAuthorizationRules> rulesProvider)
+            ObjectProvider<ResourceServerAuthorizationRules> rulesProvider,
+            ObjectProvider<CorsConfigurationSource> corsConfigurationProvider
+            )
             throws Exception {
 
         ResourceServerAuthorizationRules rules =
                 rulesProvider.getIfAvailable(this::defaultAuthorizationRules);
+        CorsConfigurationSource configuration=corsConfigurationProvider.getIfAvailable(this::defaultCorsConfiguration);
 
         http.authorizeHttpRequests(authorize -> {
                     rules.configure(authorize);
@@ -105,7 +118,7 @@ public class JwtResourceServerConfiguration {
                                         jwtAuthenticationConverter
                                 )
                         )
-                );
+                ).cors(cors -> cors.configurationSource(configuration));
 
         return http.build();
     }

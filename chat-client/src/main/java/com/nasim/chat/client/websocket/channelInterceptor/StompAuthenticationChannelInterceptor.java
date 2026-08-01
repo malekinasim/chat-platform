@@ -1,4 +1,4 @@
-package com.nasim.chat.client.websocket;
+package com.nasim.chat.client.websocket.channelInterceptor;
 
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;

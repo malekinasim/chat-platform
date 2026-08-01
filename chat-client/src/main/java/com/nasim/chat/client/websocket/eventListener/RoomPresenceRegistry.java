@@ -1,4 +1,4 @@
-package com.nasim.chat.client.websocket.presence;
+package com.nasim.chat.client.websocket.eventListener;
 
 import org.springframework.stereotype.Component;
 
