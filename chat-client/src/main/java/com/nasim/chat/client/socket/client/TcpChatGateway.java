@@ -1,7 +1,7 @@
 package com.nasim.chat.client.socket.client;
 
-import com.nasim.chat.client.model.dto.ChatMessage;
-import com.nasim.chat.client.model.dto.OutgoingChatRequest;
+import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.OutgoingChatRequest;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

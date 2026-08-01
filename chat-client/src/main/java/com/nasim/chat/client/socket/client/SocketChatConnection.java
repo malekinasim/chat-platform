@@ -1,6 +1,6 @@
 package com.nasim.chat.client.socket.client;
 
-import com.nasim.chat.client.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.ChatMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

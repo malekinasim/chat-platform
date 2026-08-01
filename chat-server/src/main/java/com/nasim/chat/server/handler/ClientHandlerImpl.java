@@ -1,6 +1,6 @@
 package com.nasim.chat.server.handler;
 
-import com.nasim.chat.model.ChatMessage;
+import com.nasim.chat.model.dto.ChatMessage;
 import com.nasim.chat.server.client.ClientConnection;
 import com.nasim.chat.server.listener.MessageListener;
 import org.springframework.stereotype.Service;

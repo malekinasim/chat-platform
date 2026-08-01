@@ -1,4 +1,4 @@
-package com.nasim.chat.client.model.dto;
+package com.nasim.chat.model.dto;
 
 import java.io.Serial;
 import java.io.Serializable;

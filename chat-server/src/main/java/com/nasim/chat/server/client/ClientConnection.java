@@ -1,7 +1,7 @@
 package com.nasim.chat.server.client;
 
 
-import com.nasim.chat.model.ChatMessage;
+import com.nasim.chat.model.dto.ChatMessage;
 
 import java.io.*;
 import java.net.InetSocketAddress;
