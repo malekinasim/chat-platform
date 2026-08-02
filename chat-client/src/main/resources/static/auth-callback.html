@@ -2,293 +2,486 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1"
-    >
-
-    <title>Public Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat Test Page</title>
 
     <style>
         body {
-            max-width: 700px;
+            max-width: 760px;
             margin: 40px auto;
             padding: 0 20px;
             font-family: Arial, sans-serif;
+            color: #202124;
         }
 
-        #public-messages {
+        #chat-navigation {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        button, select, input {
+            padding: 10px 12px;
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .mode-button.active {
+            color: white;
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .chat-toolbar, .message-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .chat-toolbar select, .message-form input {
+            flex: 1;
+        }
+
+        .messages {
             min-height: 250px;
+            max-height: 420px;
+            overflow-y: auto;
             padding: 16px;
             border: 1px solid #ccc;
             border-radius: 8px;
             list-style: none;
         }
 
-        #public-messages li {
+        .messages li {
             margin-bottom: 10px;
+            overflow-wrap: anywhere;
         }
 
-        #public-message-form {
-            display: flex;
-            gap: 8px;
+        .empty-message {
+            color: #666;
         }
 
-        #public-message-input {
-            flex: 1;
-            padding: 10px;
-        }
-
-        button {
-            padding: 10px 18px;
-            cursor: pointer;
+        #status.error {
+            color: #b91c1c;
         }
     </style>
 </head>
 
 <body>
-
+<h1>Chat Test Page</h1>
 <p id="status">Completing login...</p>
 
-<section id="public-chat" hidden>
-    <h2>Public Chat</h2>
+<nav id="chat-navigation" hidden>
+    <button class="mode-button active" data-mode="public" type="button">
+        Public Chat
+    </button>
+    <button class="mode-button" data-mode="private" type="button">
+        Private Chat
+    </button>
+    <button class="mode-button" data-mode="group" type="button">
+        Group Chat
+    </button>
+</nav>
 
-    <ul id="public-messages"></ul>
+<main id="chat-dashboard" hidden>
+    <section id="public-panel" class="chat-panel">
+        <h2>Public Chat</h2>
+        <ul id="public-messages" class="messages"></ul>
+        <form id="public-message-form" class="message-form">
+            <input id="public-message-input" type="text"
+                   placeholder="Write a public message" autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+    </section>
 
-    <form id="public-message-form">
-        <input
-                id="public-message-input"
-                type="text"
-                placeholder="Write a public message"
-                autocomplete="off"
-                required
-        >
+    <section id="private-panel" class="chat-panel" hidden>
+        <h2>Private Chat</h2>
+        <div class="chat-toolbar">
+            <select id="online-user-select" aria-label="Online user"></select>
+            <button id="refresh-users" type="button">Refresh users</button>
+        </div>
+        <ul id="private-messages" class="messages"></ul>
+        <form id="private-message-form" class="message-form">
+            <input id="private-message-input" type="text"
+                   placeholder="Write a private message" autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+    </section>
 
-        <button type="submit">
-            Send
-        </button>
-    </form>
-</section>
+    <section id="group-panel" class="chat-panel" hidden>
+        <h2>Group Chat</h2>
+        <div class="chat-toolbar">
+            <select id="group-select" aria-label="Group"></select>
+            <button id="refresh-groups" type="button">Refresh groups</button>
+        </div>
+        <ul id="group-messages" class="messages"></ul>
+        <form id="group-message-form" class="message-form">
+            <input id="group-message-input" type="text"
+                   placeholder="Write a group message" autocomplete="off" required>
+            <button type="submit">Send</button>
+        </form>
+    </section>
+</main>
 
-<script
-        src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js">
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
 <script>
     const LOGIN_URL =
         "http://localhost:8083/auth/login?app_client_id=chat-client";
-
     const TOKEN_EXCHANGE_URL =
         "http://localhost:8083/api/auth/token/exchange";
-
-    const WEBSOCKET_URL =
-        "ws://localhost:8082/ws/chat";
+    const WEBSOCKET_URL = "ws://localhost:8082/ws/chat";
+    const ONLINE_USERS_URL = "/api/chat/list/online-users";
+    const USER_GROUPS_URL = "/api/chat/list/user-groups";
 
     let accessToken = null;
     let stompClient = null;
+    let selectedMode = "public";
+    let selectedPrivateUser = "";
+    let selectedGroupCode = "";
+    let groupSubscription = null;
+
+    const privateConversations = new Map();
+    const groupConversations = new Map();
+
+    const statusElement = document.getElementById("status");
+    const navigation = document.getElementById("chat-navigation");
+    const dashboard = document.getElementById("chat-dashboard");
+    const onlineUserSelect = document.getElementById("online-user-select");
+    const groupSelect = document.getElementById("group-select");
+
+    function setStatus(message, isError = false) {
+        statusElement.textContent = message;
+        statusElement.classList.toggle("error", isError);
+    }
 
     async function exchangeLoginCode() {
-        const response = await fetch(
-            TOKEN_EXCHANGE_URL,
-            {
-                method: "POST",
-                credentials: "include"
-            }
-        );
+        const response = await fetch(TOKEN_EXCHANGE_URL, {
+            method: "POST",
+            credentials: "include"
+        });
 
         if (!response.ok) {
-            throw new Error(
-                `Token exchange failed: ${response.status}`
-            );
+            throw new Error(`Token exchange failed: ${response.status}`);
         }
 
         const tokenResponse = await response.json();
-
         if (!tokenResponse.accessToken) {
-            throw new Error(
-                "The exchange response does not contain an access token."
-            );
+            throw new Error("The exchange response does not contain an access token.");
         }
-
         return tokenResponse;
     }
 
-    function displayPublicMessage(message) {
-        const messages =
-            document.getElementById("public-messages");
+    async function fetchAuthenticated(url) {
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
 
-        const messageElement =
-            document.createElement("li");
+        if (!response.ok) {
+            throw new Error(`${url} returned ${response.status}`);
+        }
+        return response.json();
+    }
 
-        messageElement.textContent =
-            `${message.sender}: ${message.content}`;
+    function appendMessage(listId, message, senderLabel = message.sender) {
+        const list = document.getElementById(listId);
+        const emptyMessage = list.querySelector(".empty-message");
+        emptyMessage?.remove();
 
-        messages.appendChild(messageElement);
+        const item = document.createElement("li");
+        item.textContent = `${senderLabel}: ${message.content}`;
+        list.appendChild(item);
+        list.scrollTop = list.scrollHeight;
+    }
+
+    function renderMessages(listId, messages, emptyText) {
+        const list = document.getElementById(listId);
+        list.replaceChildren();
+
+        if (messages.length === 0) {
+            const item = document.createElement("li");
+            item.className = "empty-message";
+            item.textContent = emptyText;
+            list.appendChild(item);
+            return;
+        }
+
+        messages.forEach(entry =>
+            appendMessage(listId, entry.message, entry.senderLabel)
+        );
+    }
+
+    function conversationFor(store, key) {
+        if (!store.has(key)) {
+            store.set(key, []);
+        }
+        return store.get(key);
+    }
+
+    function renderPrivateConversation() {
+        const messages = selectedPrivateUser
+            ? conversationFor(privateConversations, selectedPrivateUser)
+            : [];
+        renderMessages(
+            "private-messages",
+            messages,
+            selectedPrivateUser
+                ? "No private messages in this conversation yet."
+                : "Select an online user."
+        );
+    }
+
+    function renderGroupConversation() {
+        const messages = selectedGroupCode
+            ? conversationFor(groupConversations, selectedGroupCode)
+            : [];
+        renderMessages(
+            "group-messages",
+            messages,
+            selectedGroupCode
+                ? "No messages received in this group yet."
+                : "Select one of your groups."
+        );
+    }
+
+    async function loadOnlineUsers() {
+        try {
+            const users = await fetchAuthenticated(ONLINE_USERS_URL);
+            const previousSelection = selectedPrivateUser;
+            onlineUserSelect.replaceChildren();
+
+            if (users.length === 0) {
+                onlineUserSelect.add(new Option("No other users are online", ""));
+                onlineUserSelect.disabled = true;
+                selectedPrivateUser = "";
+            } else {
+                users.forEach(userId =>
+                    onlineUserSelect.add(new Option(userId, userId))
+                );
+                onlineUserSelect.disabled = false;
+                selectedPrivateUser = users.includes(previousSelection)
+                    ? previousSelection
+                    : users[0];
+                onlineUserSelect.value = selectedPrivateUser;
+            }
+            renderPrivateConversation();
+        } catch (error) {
+            console.error("Could not load online users:", error);
+            setStatus("Could not load online users.", true);
+        }
+    }
+
+    async function loadUserGroups() {
+        try {
+            const groups = await fetchAuthenticated(USER_GROUPS_URL);
+            const previousSelection = selectedGroupCode;
+            groupSelect.replaceChildren();
+
+            if (groups.length === 0) {
+                groupSelect.add(new Option("You do not belong to a group", ""));
+                groupSelect.disabled = true;
+                changeSelectedGroup("");
+            } else {
+                groups.forEach(group =>
+                    groupSelect.add(new Option(group.groupName, group.groupCode))
+                );
+                groupSelect.disabled = false;
+                const groupCodes = groups.map(group => group.groupCode);
+                changeSelectedGroup(
+                    groupCodes.includes(previousSelection)
+                        ? previousSelection
+                        : groupCodes[0]
+                );
+                groupSelect.value = selectedGroupCode;
+            }
+        } catch (error) {
+            console.error("Could not load user groups:", error);
+            setStatus("Could not load your groups.", true);
+        }
+    }
+
+    function changeSelectedGroup(groupCode) {
+        groupSubscription?.unsubscribe();
+        groupSubscription = null;
+        selectedGroupCode = groupCode;
+
+        if (groupCode && stompClient?.connected) {
+            groupSubscription = stompClient.subscribe(
+                `/topic/room/${groupCode}`,
+                frame => {
+                    const message = JSON.parse(frame.body);
+                    const conversation = conversationFor(groupConversations, groupCode);
+                    conversation.push({message, senderLabel: message.sender});
+                    if (selectedGroupCode === groupCode) {
+                        appendMessage("group-messages", message);
+                    }
+                }
+            );
+        }
+        renderGroupConversation();
+    }
+
+    function showMode(mode) {
+        selectedMode = mode;
+        document.querySelectorAll(".chat-panel").forEach(panel => {
+            panel.hidden = panel.id !== `${mode}-panel`;
+        });
+        document.querySelectorAll(".mode-button").forEach(button => {
+            button.classList.toggle("active", button.dataset.mode === mode);
+        });
+
+        if (mode === "private") {
+            loadOnlineUsers();
+        } else if (mode === "group") {
+            loadUserGroups();
+        }
+    }
+
+    function publish(destination, text) {
+        if (!stompClient?.connected) {
+            setStatus("The chat connection is not active.", true);
+            return false;
+        }
+        stompClient.publish({
+            destination,
+            body: JSON.stringify({text})
+        });
+        return true;
     }
 
     function connectToChat(token) {
-        const statusElement =
-            document.getElementById("status");
-
-        const publicChat =
-            document.getElementById("public-chat");
-
         stompClient = new StompJs.Client({
             brokerURL: WEBSOCKET_URL,
-
-            connectHeaders: {
-                Authorization: `Bearer ${token}`
-            },
-
-            debug: message => {
-                console.log("[STOMP]", message);
-            },
+            connectHeaders: {Authorization: `Bearer ${token}`},
+            debug: message => console.log("[STOMP]", message),
 
             onConnect: () => {
-                console.log(
-                    "STOMP connection established"
-                );
+                stompClient.subscribe("/topic/public", frame => {
+                    appendMessage("public-messages", JSON.parse(frame.body));
+                });
 
-                stompClient.subscribe(
-                    "/topic/public",
-                    frame => {
-                        try {
-                            const receivedMessage =
-                                JSON.parse(frame.body);
-
-                            displayPublicMessage(
-                                receivedMessage
-                            );
-                        } catch (error) {
-                            console.error(
-                                "Could not read received message:",
-                                error
-                            );
-                        }
+                stompClient.subscribe("/user/queue/private", frame => {
+                    const message = JSON.parse(frame.body);
+                    const conversation = conversationFor(
+                        privateConversations,
+                        message.sender
+                    );
+                    conversation.push({message, senderLabel: message.sender});
+                    if (selectedPrivateUser === message.sender) {
+                        appendMessage("private-messages", message);
                     }
-                );
+                });
 
-                statusElement.textContent =
-                    "Connected to public chat.";
-
-                publicChat.hidden = false;
-
-                document
-                    .getElementById("public-message-input")
-                    .focus();
+                setStatus("Connected to chat.");
+                navigation.hidden = false;
+                dashboard.hidden = false;
+                renderMessages("public-messages", [], "No public messages yet.");
+                showMode("public");
+                document.getElementById("public-message-input").focus();
             },
 
             onStompError: frame => {
-                console.error(
-                    "STOMP error:",
-                    frame.headers["message"],
-                    frame.body
-                );
-
-                statusElement.textContent =
-                    "The chat server rejected the connection.";
-
-                publicChat.hidden = true;
+                console.error("STOMP error:", frame.headers["message"], frame.body);
+                setStatus("The chat server rejected the connection.", true);
+                navigation.hidden = true;
+                dashboard.hidden = true;
             },
 
             onWebSocketError: error => {
-                console.error(
-                    "WebSocket error:",
-                    error
-                );
-
-                statusElement.textContent =
-                    "Could not connect to the chat server.";
-
-                publicChat.hidden = true;
+                console.error("WebSocket error:", error);
+                setStatus("Could not connect to the chat server.", true);
             },
 
             onWebSocketClose: () => {
-                console.log(
-                    "WebSocket connection closed"
-                );
+                if (stompClient) {
+                    setStatus("The chat connection is closed.", true);
+                }
             }
         });
-
         stompClient.activate();
     }
 
-    document
-        .getElementById("public-message-form")
+    document.querySelectorAll(".mode-button").forEach(button => {
+        button.addEventListener("click", () => showMode(button.dataset.mode));
+    });
+
+    onlineUserSelect.addEventListener("change", () => {
+        selectedPrivateUser = onlineUserSelect.value;
+        renderPrivateConversation();
+    });
+
+    groupSelect.addEventListener("change", () => {
+        changeSelectedGroup(groupSelect.value);
+    });
+
+    document.getElementById("refresh-users")
+        .addEventListener("click", loadOnlineUsers);
+    document.getElementById("refresh-groups")
+        .addEventListener("click", loadUserGroups);
+
+    document.getElementById("public-message-form")
         .addEventListener("submit", event => {
             event.preventDefault();
-
-            const input =
-                document.getElementById(
-                    "public-message-input"
-                );
-
+            const input = document.getElementById("public-message-input");
             const text = input.value.trim();
+            if (text && publish("/app/chat/public", text)) {
+                input.value = "";
+                input.focus();
+            }
+        });
 
-            if (!text) {
+    document.getElementById("private-message-form")
+        .addEventListener("submit", event => {
+            event.preventDefault();
+            const input = document.getElementById("private-message-input");
+            const text = input.value.trim();
+            if (!selectedPrivateUser) {
+                setStatus("Select an online user first.", true);
                 return;
             }
+            if (text && publish(`/app/chat/private/${selectedPrivateUser}`, text)) {
+                const message = {content: text};
+                conversationFor(privateConversations, selectedPrivateUser)
+                    .push({message, senderLabel: "You"});
+                appendMessage("private-messages", message, "You");
+                input.value = "";
+                input.focus();
+            }
+        });
 
-            if (!stompClient?.connected) {
-                document.getElementById("status").textContent =
-                    "The chat connection is not active.";
-
+    document.getElementById("group-message-form")
+        .addEventListener("submit", event => {
+            event.preventDefault();
+            const input = document.getElementById("group-message-input");
+            const text = input.value.trim();
+            if (!selectedGroupCode) {
+                setStatus("Select a group first.", true);
                 return;
             }
-
-            stompClient.publish({
-                destination: "/app/chat/public",
-
-                body: JSON.stringify({
-                    text: text
-                })
-            });
-
-            input.value = "";
-            input.focus();
+            if (text && publish(`/app/chat/room/${selectedGroupCode}`, text)) {
+                input.value = "";
+                input.focus();
+            }
         });
 
     async function startAuthentication() {
-        const statusElement =
-            document.getElementById("status");
-
         try {
-            const tokenResponse =
-                await exchangeLoginCode();
-
-            accessToken =
-                tokenResponse.accessToken;
-
-            console.log(
-                "Token type:",
-                tokenResponse.tokenType
-            );
-
-            console.log(
-                "Expires in:",
-                tokenResponse.expiresIn
-            );
-
-            statusElement.textContent =
-                "Login completed. Connecting to chat...";
-
+            const tokenResponse = await exchangeLoginCode();
+            accessToken = tokenResponse.accessToken;
+            setStatus("Login completed. Connecting to chat...");
             connectToChat(accessToken);
-
         } catch (error) {
-            console.error(
-                "Authentication failed:",
-                error
-            );
-
-            statusElement.textContent =
-                "Login could not be completed. Redirecting...";
-
+            console.error("Authentication failed:", error);
+            setStatus("Login could not be completed. Redirecting...", true);
             window.location.replace(LOGIN_URL);
         }
     }
 
     startAuthentication();
 </script>
-
 </body>
 </html>

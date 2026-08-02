@@ -10,12 +10,12 @@ import java.util.List;
 public interface GroupMembershipRepository extends JpaRepository<GroupMembership, Long> {
 
     boolean existsByUserIdAndGroup_GroupCodeAndActiveTrue(String userId, String groupCode);
-
-    @Query(value = """ 
-            select  gm from GroupMembership gm
-            inner join gm.ChatGroup g
-            where gm.userId= :userId
-            
+    @Query("""
+            select gm from GroupMembership gm
+            join fetch gm.group g
+            where gm.userId = :userId
+              and gm.active = true
+              and g.active = true
             """)
-    List<GroupMembership> findUserAllActiveGroup(@Param(value = "userID") String userId);
+    List<GroupMembership> findUserAllActiveGroup(@Param("userId") String userId);
 }

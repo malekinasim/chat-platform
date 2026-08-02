@@ -20,10 +20,11 @@ public class PrivateWebSocketDeliveryHandler implements WebSocketDeliveryHandler
 
     @Override
     public void deliver(ChatMessage message) {
-        System.out.println("Publishing to /queue/user/%s ".formatted(message.receiver()) + message);
+        System.out.println("Publishing private message to user " + message.receiver());
 
-        simpMessagingTemplate.convertAndSend(
-                "/queue/user/%s".formatted(message.receiver()),
+        simpMessagingTemplate.convertAndSendToUser(
+                message.receiver(),
+                "/queue/private",
                 message
         );
 
