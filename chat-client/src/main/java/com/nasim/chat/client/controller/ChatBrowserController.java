@@ -11,8 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,9 +27,11 @@ import java.util.Set;
 @RestController
 public class ChatBrowserController {
     private final ChatMessageTransport chatMessageTransport;
+    private final SimpUserRegistry simpUserRegistry;
     private final GroupMembershipService groupMembershipService;
-    public ChatBrowserController(ChatMessageTransport chatMessageTransport, GroupMembershipService groupMembershipService) {
+    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService) {
         this.chatMessageTransport = chatMessageTransport;
+        this.simpUserRegistry = simpUserRegistry;
         this.groupMembershipService = groupMembershipService;
     }
     @MessageMapping("/chat/public")
@@ -81,13 +85,20 @@ public class ChatBrowserController {
         List <ChatGroupDto> groups=groupMembershipService.getUserActiveGroup(userId);
         return new ResponseEntity<>(groups, HttpStatus.OK);
     }
-    @GetMapping("/api/admin/rooms")
-    public ResponseEntity<?> sendAllRoomList(Principal principal) {
-        return new ResponseEntity<>(List.of("test1","test2","test3"), HttpStatus.OK);
+
+    @GetMapping("/api/chat/list/online-users")
+    public List<String> getOnlineUsers(
+            Authentication authentication
+    ) {
+        String currentUserId = authentication.getName();
+        return simpUserRegistry.getUsers()
+                .stream()
+                .map(user -> user.getName())
+                .filter(userId ->
+                        !userId.equals(currentUserId)
+                )
+                .sorted()
+                .toList();
     }
-    @GetMapping("/api/test/rooms")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> test(Principal principal) {
-        return ResponseEntity.ok(List.of("test1", "test2", "test3"));
-    }
+
 }
