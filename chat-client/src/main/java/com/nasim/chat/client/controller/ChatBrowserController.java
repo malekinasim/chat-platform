@@ -1,8 +1,10 @@
 package com.nasim.chat.client.controller;
 
+import com.nasim.chat.client.model.entity.ChatGroup;
 import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.client.socket.client.ChatMessageTransport;
+import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
 import com.nasim.chat.model.dto.OutgoingChatRequest;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RestController
@@ -73,7 +76,10 @@ public class ChatBrowserController {
 
     @GetMapping("/api/chat/list/user-rooms")
     public ResponseEntity<?> sendUserRoomList(Principal principal) {
-        return new ResponseEntity<>(List.of("test1","test2"), HttpStatus.OK);
+        String userId = SecurityUtils.authenticatedUsername(principal);
+
+        List <ChatGroupDto> groups=groupMembershipService.getUserActiveGroup(userId);
+        return new ResponseEntity<>(groups, HttpStatus.OK);
     }
     @GetMapping("/api/admin/rooms")
     public ResponseEntity<?> sendAllRoomList(Principal principal) {
