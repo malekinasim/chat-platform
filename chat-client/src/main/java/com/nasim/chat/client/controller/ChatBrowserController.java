@@ -36,11 +36,24 @@ public class ChatBrowserController {
                 )
         );
     }
-
+    @MessageMapping("/chat/private/{receiverId}")
+    public void sendPrivate(
+            ChatMessageDto messageDto,
+            @DestinationVariable String receiverId,
+            Principal principal
+    ) {
+        chatMessageTransport.publish(
+                OutgoingChatRequest.privateText(
+                        principal.getName(),
+                        receiverId,
+                        messageDto.text()
+                )
+        );
+    }
     @MessageMapping("/chat/room/{roomCode}")
     public void sendToRoom(
             ChatMessageDto messageDto,
-            @DestinationVariable(value = "roomCode") String roomCode,
+            @DestinationVariable String roomCode,
             Principal principal
     ) {
         String userId = SecurityUtils.authenticatedUsername(principal);
