@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -93,7 +94,7 @@ public class ChatBrowserController {
         String currentUserId = authentication.getName();
         return simpUserRegistry.getUsers()
                 .stream()
-                .map(user -> user.getName())
+                .map(SimpUser::getName)
                 .filter(userId ->
                         !userId.equals(currentUserId)
                 )
