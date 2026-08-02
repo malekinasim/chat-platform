@@ -78,7 +78,7 @@ public class ChatBrowserController {
 
     }
 
-    @GetMapping("/api/chat/list/user-rooms")
+    @GetMapping("/api/chat/list/user-groups")
     public ResponseEntity<?> sendUserRoomList(Principal principal) {
         String userId = SecurityUtils.authenticatedUsername(principal);
 
