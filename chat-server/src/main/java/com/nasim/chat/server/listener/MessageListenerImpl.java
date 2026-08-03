@@ -1,6 +1,6 @@
 package com.nasim.chat.server.listener;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.server.client.ClientConnection;
 import com.nasim.chat.server.client.ClientRegistryService;
 import org.springframework.context.annotation.Lazy;
@@ -17,10 +17,10 @@ public class MessageListenerImpl implements MessageListener{
     }
 
     @Override
-    public void dispatch(ChatMessage chatMessage) {
+    public void dispatch(PublishedChatMessage publishedChatMessage) {
         for (ClientConnection client :  clientRegistryService.getClients()) {
             try {
-                client.send(chatMessage);
+                client.send(publishedChatMessage);
             } catch (IOException e) {
                 clientRegistryService.unregister(client);
 

@@ -4,7 +4,6 @@ import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.repository.MessageRepository;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
-import com.nasim.chat.model.dto.ChatMessage;
 import com.nasim.chat.model.dto.SendMessageCommand;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +27,12 @@ public class MessageServiceImpl implements MessageService {
         message.setTextContent(sendMessageCommand.text());
         message.setMessageContentType(sendMessageCommand.messageContentType());
         message.setDeliveryType(sendMessageCommand.deliveryType());
+        String destinationId = switch (sendMessageCommand.deliveryType()) {
+            case PRIVATE -> sendMessageCommand.receiver();
+            case GROUP -> sendMessageCommand.room();
+            case BROADCAST -> null;
+        };
+        message.setDestinationId(destinationId);
         Message savedMessage = messageRepository.save(message);
         messageReceiverService.saveReceivers(savedMessage,receiver);
         return savedMessage;

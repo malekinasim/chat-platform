@@ -34,6 +34,7 @@ services:
       SECURITY_JWT_PUBLIC_KEY_FILE: file:/dev-keys/public.pem
       SECURITY_JWT_ISSUER: http://auth-service:8083
       SECURITY_JWT_AUDIENCE: chat-client
+      AUTH_SERVICE_BASE_URL: http://auth-service:8083
     volumes:
       - ../dev-keys:/dev-keys:ro
     depends_on:

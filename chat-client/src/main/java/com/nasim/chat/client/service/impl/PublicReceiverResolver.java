@@ -4,6 +4,7 @@ import com.nasim.chat.client.service.ReceiverResolver;
 import com.nasim.chat.client.service.UserDirectoryClient;
 import com.nasim.chat.model.dto.DeliveryType;
 import com.nasim.chat.model.dto.SendMessageCommand;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import java.util.List;
 @Service
@@ -20,7 +21,10 @@ public class PublicReceiverResolver implements ReceiverResolver {
     }
 
     @Override
-    public List<String> resolveReceiverIds(SendMessageCommand command) {
-        return userDirectoryClient.findAllActiveUserIds();
+    public List<String> resolveReceiverIds(SendMessageCommand command,
+                                           JwtAuthenticationToken authentication ) {
+        String accessToken =
+                authentication.getToken().getTokenValue();
+        return userDirectoryClient.findAllActiveUserIds(accessToken);
     }
 }

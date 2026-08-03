@@ -3,7 +3,7 @@ package com.nasim.chat.client.socket.listener;
 import com.nasim.chat.client.handler.Handler;
 import com.nasim.chat.client.handler.IncomingContentHandler;
 import com.nasim.chat.client.handler.WebSocketDeliveryHandler;
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.MessageContentType;
 import com.nasim.chat.model.dto.DeliveryType;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ public class IncomingMessageDispatcher
     }
 
     @Override
-    public void dispatch(ChatMessage message) {
+    public void dispatch(PublishedChatMessage message) {
         IncomingContentHandler incomingContentHandler =
                 contentHandlers.get(message.messageContentType());
 
@@ -53,7 +53,7 @@ public class IncomingMessageDispatcher
             );
         }
 
-        ChatMessage processedMessage =
+        PublishedChatMessage processedMessage =
                 incomingContentHandler.handle(message);
 
         deliveryHandler.deliver(processedMessage);

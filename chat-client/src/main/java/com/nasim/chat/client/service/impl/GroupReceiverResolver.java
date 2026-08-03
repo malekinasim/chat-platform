@@ -5,6 +5,7 @@ import com.nasim.chat.client.service.ReceiverResolver;
 import com.nasim.chat.client.service.UserDirectoryClient;
 import com.nasim.chat.model.dto.DeliveryType;
 import com.nasim.chat.model.dto.SendMessageCommand;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import java.util.List;
 @Service
@@ -23,11 +24,12 @@ public class GroupReceiverResolver implements ReceiverResolver {
     }
 
     @Override
-    public List<String> resolveReceiverIds(SendMessageCommand command) {
-        return  groupMembershipService.findMemberIdsByGroupCode(command.room()).stream()
-                .filter(memberId -> !memberId.equals(command.sender())
-                && userDirectoryClient.isUserActive(command.sender())
-                )
+    public List<String> resolveReceiverIds(SendMessageCommand command,JwtAuthenticationToken authentication) {
+        List<String> memberIds=  groupMembershipService.findMemberIdsByGroupCode(command.room()).stream()
+                .filter(memberId -> !memberId.equals(command.sender()))
                 .toList();
+        String accessToken =
+                authentication.getToken().getTokenValue();
+        return userDirectoryClient.findAllValidMambers(memberIds,accessToken);
     }
 }

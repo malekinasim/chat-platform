@@ -1,6 +1,6 @@
 package com.nasim.chat.client.socket.client;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -33,7 +33,7 @@ public class SocketChatConnection implements ChatConnection {
         );
     }
 
-    public synchronized void send(ChatMessage message)
+    public synchronized void send(PublishedChatMessage message)
             throws IOException {
 
         output.writeObject(message);
@@ -41,12 +41,12 @@ public class SocketChatConnection implements ChatConnection {
         output.reset();
     }
 
-    public ChatMessage receive()
+    public PublishedChatMessage receive()
             throws IOException, ClassNotFoundException {
 
         Object value = input.readObject();
 
-        if (!(value instanceof ChatMessage message)) {
+        if (!(value instanceof PublishedChatMessage message)) {
             throw new StreamCorruptedException(
                     "Expected ChatMessage but received: "
                             + value.getClass().getName()

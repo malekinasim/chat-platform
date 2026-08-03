@@ -1,6 +1,6 @@
 package com.nasim.chat.client.handler;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.DeliveryType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ public class GroupWebSocketDeliveryHandler implements WebSocketDeliveryHandler {
     }
 
     @Override
-    public void deliver(ChatMessage message) {
+    public void deliver(PublishedChatMessage message) {
         System.out.println("Publishing to /topic/room/%s ".formatted(message.room()) + message);
 
         simpMessagingTemplate.convertAndSend(

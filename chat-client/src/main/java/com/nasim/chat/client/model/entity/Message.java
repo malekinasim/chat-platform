@@ -13,6 +13,8 @@ import lombok.Setter;
 public class Message extends BaseEntity<Long>{
   @Column(name="text_content")
   private String textContent;
+  @Column(name = "destination_id")
+  private String destinationId;
 
   @OneToOne(fetch = FetchType.LAZY,targetEntity = Message.class)
   @JoinColumn(name = "reply_to_message_id")

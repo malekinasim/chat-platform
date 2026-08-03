@@ -1,6 +1,6 @@
 package com.nasim.chat.server.handler;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.server.client.ClientConnection;
 import com.nasim.chat.server.listener.MessageListener;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class ClientHandlerImpl implements ClientHandler{
     public void handle(ClientConnection client) {
         try {
             while (client.isOpen()) {
-                ChatMessage message = client.receive();
+                PublishedChatMessage message = client.receive();
                 messageListener.dispatch( message);
             }
         } catch (EOFException e) {

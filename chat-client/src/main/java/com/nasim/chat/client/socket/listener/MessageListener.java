@@ -1,9 +1,9 @@
 package com.nasim.chat.client.socket.listener;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 
 public interface MessageListener {
 
-     void dispatch(ChatMessage chatMessage);
+     void dispatch(PublishedChatMessage publishedChatMessage);
 
 }

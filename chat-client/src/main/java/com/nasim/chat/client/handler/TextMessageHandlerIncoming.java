@@ -1,6 +1,6 @@
 package com.nasim.chat.client.handler;
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.MessageContentType;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ public class TextMessageHandlerIncoming implements IncomingContentHandler {
     }
 
     @Override
-    public ChatMessage handle(ChatMessage message) {
+    public PublishedChatMessage handle(PublishedChatMessage message) {
         String cleanedContent = message.content().trim();
 
         if (cleanedContent.isEmpty()) {
@@ -21,7 +21,7 @@ public class TextMessageHandlerIncoming implements IncomingContentHandler {
             );
         }
 
-        return new ChatMessage(
+        return new PublishedChatMessage(
                 message.deliveryType(),
                 message.messageContentType(),
                 message.sender(),

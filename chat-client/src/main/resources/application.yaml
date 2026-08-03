@@ -12,7 +12,9 @@ server:
         path: /
         http-only: true
         same-site: lax
-
+services:
+  auth-service:
+    base-url: ${AUTH_SERVICE_BASE_URL:http://localhost:8083}
 # chat-client
 security:
   jwt:

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -60,5 +61,22 @@ public class AppUserServiceImpl implements AppUserService {
                 userInfo.email(),
                 appUser);
         return appUser;
+    }
+
+    @Override
+    public List<Long> findAll() {
+        return appUserRepository.findAllByActiveTrue().stream()
+                .map(AppUser::getId).toList();
+    }
+
+    @Override
+    public List<Long> findAllById(List<Long> ids) {
+        return appUserRepository.findAllByIdAndActiveTrue(ids).stream()
+                .map(AppUser::getId).toList();
+    }
+
+    @Override
+    public boolean existsByUsername(Long id) {
+        return appUserRepository.findById(id).isPresent();
     }
 }

@@ -1,7 +1,7 @@
 package com.nasim.chat.server.client;
 
 
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -42,7 +42,7 @@ public class ClientConnection implements Closeable {
         );
     }
 
-    public synchronized void send(ChatMessage message)
+    public synchronized void send(PublishedChatMessage message)
             throws IOException {
 
         output.writeObject(message);
@@ -50,12 +50,12 @@ public class ClientConnection implements Closeable {
         output.reset();
     }
 
-    public ChatMessage receive()
+    public PublishedChatMessage receive()
             throws IOException, ClassNotFoundException {
 
         Object value = input.readObject();
 
-        if (!(value instanceof ChatMessage message)) {
+        if (!(value instanceof PublishedChatMessage message)) {
             throw new StreamCorruptedException(
                     "Expected ChatMessage but received: "
                             + value.getClass().getName()

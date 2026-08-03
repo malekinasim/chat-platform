@@ -25,5 +25,5 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
               and gm.active = true
               and g.active = true
             """)
-    List<GroupMembership> findMembersByGroupCode(@Param("userCode") String groupCode);
+    List<GroupMembership> findMembersByGroupCode(@Param("groupCode") String groupCode);
 }

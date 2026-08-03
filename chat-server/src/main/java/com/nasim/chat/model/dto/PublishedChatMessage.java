@@ -2,21 +2,24 @@ package com.nasim.chat.model.dto;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
-public record ChatMessage(
+public record PublishedChatMessage(
         DeliveryType deliveryType,
         MessageContentType messageContentType,
         String sender,
         String receiver,
         String content,
-        String room
+        String room,
+        Long messageId,
+        LocalDateTime createdAt
 ) implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ChatMessage {
+    public PublishedChatMessage {
         Objects.requireNonNull(
                 deliveryType,
                 "deliveryType must not be null"

@@ -1,7 +1,7 @@
 package com.nasim.chat.client.socket.client;
 
 import com.nasim.chat.client.socket.listener.MessageListener;
-import com.nasim.chat.model.dto.ChatMessage;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class ChatClientReceiver {
     private void runListeningLoop() {
         try {
             while (running.get()) {
-                ChatMessage message = chatConnection.receive();
+                PublishedChatMessage message = chatConnection.receive();
                 messageListener.dispatch(message);
             }
 
