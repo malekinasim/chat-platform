@@ -2,7 +2,7 @@ package com.nasim.chat.model.dto;
 
 public record OutgoingChatRequest(
         DeliveryType deliveryType,
-        ContentType contentType,
+        MessageContentType messageContentType,
         String sender,
         String receiver,
         String text,
@@ -15,7 +15,7 @@ public record OutgoingChatRequest(
     ) {
         return new OutgoingChatRequest(
                 DeliveryType.BROADCAST,
-                ContentType.TEXT,
+                MessageContentType.TEXT,
                 sender,
                 null,
                 text,
@@ -30,7 +30,7 @@ public record OutgoingChatRequest(
     ) {
         return new OutgoingChatRequest(
                 DeliveryType.PRIVATE,
-                ContentType.TEXT,
+                MessageContentType.TEXT,
                 sender,
                 receiver,
                 text,
@@ -45,7 +45,7 @@ public record OutgoingChatRequest(
     ) {
         return new OutgoingChatRequest(
                 DeliveryType.GROUP,
-                ContentType.TEXT,
+                MessageContentType.TEXT,
                 sender,
                 null,
                 text,

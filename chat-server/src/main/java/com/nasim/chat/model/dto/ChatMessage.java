@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public record ChatMessage(
         DeliveryType deliveryType,
-        ContentType contentType,
+        MessageContentType messageContentType,
         String sender,
         String receiver,
         String content,
@@ -23,7 +23,7 @@ public record ChatMessage(
         );
 
         Objects.requireNonNull(
-                contentType,
+                messageContentType,
                 "contentType must not be null"
         );
 

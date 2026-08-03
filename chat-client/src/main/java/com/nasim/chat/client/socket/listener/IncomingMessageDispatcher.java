@@ -4,7 +4,7 @@ import com.nasim.chat.client.handler.Handler;
 import com.nasim.chat.client.handler.IncomingContentHandler;
 import com.nasim.chat.client.handler.WebSocketDeliveryHandler;
 import com.nasim.chat.model.dto.ChatMessage;
-import com.nasim.chat.model.dto.ContentType;
+import com.nasim.chat.model.dto.MessageContentType;
 import com.nasim.chat.model.dto.DeliveryType;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class IncomingMessageDispatcher
         implements MessageListener {
 
-    private final Map<ContentType, IncomingContentHandler> contentHandlers;
+    private final Map<MessageContentType, IncomingContentHandler> contentHandlers;
     private final Map<DeliveryType, WebSocketDeliveryHandler>
             deliveryHandlers;
 
@@ -34,12 +34,12 @@ public class IncomingMessageDispatcher
     @Override
     public void dispatch(ChatMessage message) {
         IncomingContentHandler incomingContentHandler =
-                contentHandlers.get(message.contentType());
+                contentHandlers.get(message.messageContentType());
 
         if (incomingContentHandler == null) {
             throw new IllegalArgumentException(
                     "Unsupported content type: "
-                            + message.contentType()
+                            + message.messageContentType()
             );
         }
 

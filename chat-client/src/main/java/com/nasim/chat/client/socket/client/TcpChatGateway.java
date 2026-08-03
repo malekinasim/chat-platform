@@ -22,7 +22,7 @@ public class TcpChatGateway implements ChatMessageTransport {
         }
         ChatMessage message = new ChatMessage(
                 outgoingChatRequest.deliveryType(),
-                outgoingChatRequest.contentType(),
+                outgoingChatRequest.messageContentType(),
                 outgoingChatRequest.sender(),
                 outgoingChatRequest.receiver(),
                 outgoingChatRequest.text(),
