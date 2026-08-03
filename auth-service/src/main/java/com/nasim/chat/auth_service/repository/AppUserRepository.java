@@ -12,5 +12,7 @@ public interface AppUserRepository extends JpaRepository<AppUser,Long> {
 
     List<AppUser> findAllByActiveTrue();
 
-    List<AppUser> findAllByIdAndActiveTrue(List<Long> ids);
+    List<AppUser> findAllByIdInAndActiveTrue(List<Long> ids);
+
+    boolean existsByIdAndActiveTrue(Long id);
 }

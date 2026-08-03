@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface MessageReceiverService {
 
-    void saveReceivers(Message message, List<String> recivers);
+    void saveReceivers(Message message, List<String> receivers);
 
     default MessageReceiver createReceiver(
             Message message,

@@ -30,6 +30,6 @@ public class GroupReceiverResolver implements ReceiverResolver {
                 .toList();
         String accessToken =
                 authentication.getToken().getTokenValue();
-        return userDirectoryClient.findAllValidMambers(memberIds,accessToken);
+        return userDirectoryClient.findAllValidMembers(memberIds,accessToken);
     }
 }

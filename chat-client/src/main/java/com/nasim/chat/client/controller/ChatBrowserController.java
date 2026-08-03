@@ -1,14 +1,12 @@
 package com.nasim.chat.client.controller;
 
 import com.nasim.chat.client.model.entity.Message;
-import com.nasim.chat.client.model.entity.mapper.MassageMapper;
+import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.client.service.MessageService;
-import com.nasim.chat.client.service.ReceiverResolver;
 import com.nasim.chat.client.service.impl.ReceiverResolveRegistry;
 import com.nasim.chat.client.socket.client.ChatMessageTransport;
-import com.nasim.chat.exception.RecipientNotFoundException;
 import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
 import com.nasim.chat.model.dto.SendMessageCommand;
@@ -28,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.List;
 
-@Controller
 @RestController
 public class ChatBrowserController {
     private final ChatMessageTransport chatMessageTransport;
@@ -76,7 +73,7 @@ public class ChatBrowserController {
     }
     private void sendMessage(SendMessageCommand command, List<String> receiverIds) {
         Message savedMessage = messageService.saveTextMessage(command, receiverIds);
-        chatMessageTransport.publish(MassageMapper.toPublishedMessage(savedMessage, command));
+        chatMessageTransport.publish(MessageMapper.toPublishedMessage(savedMessage, command));
     }
 
     @GetMapping("/api/chat/list/user-groups")
@@ -95,9 +92,7 @@ public class ChatBrowserController {
         return simpUserRegistry.getUsers()
                 .stream()
                 .map(SimpUser::getName)
-                .filter(userId ->
-                        !userId.equals(currentUserId)
-                )
+                .filter(userId -> !userId.equals(currentUserId))
                 .sorted()
                 .toList();
     }

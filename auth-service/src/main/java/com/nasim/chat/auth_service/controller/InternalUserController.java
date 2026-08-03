@@ -10,16 +10,24 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/users")
 public class InternalUserController {
-    private AppUserService appUserService;
-    @PostMapping("/active/ids")
-    public List<Long> findAllActiveUserIds(List<Long> ids) {
-        if(ids==null || ids.isEmpty() )
-            return appUserService.findAll();
-        else
-            return appUserService.findAllById(ids);
+    private final AppUserService appUserService;
+
+    public InternalUserController(AppUserService appUserService) {
+        this.appUserService = appUserService;
     }
-    @GetMapping("/{receiver}")
-    public boolean userExists(@PathVariable Long receiver) {
-        return appUserService.existsByUsername(receiver);
+
+    @GetMapping("/active/ids")
+    public List<String> findAllActiveUserIds() {
+        return appUserService.findAllActiveIds();
+    }
+
+    @PostMapping("/active/ids/filter")
+    public List<String> findAllValidUserIds(@RequestBody List<Long> ids) {
+        return appUserService.findAllActiveIdsById(ids);
+    }
+
+    @GetMapping("/{userId}/exists")
+    public boolean userExists(@PathVariable Long userId) {
+        return appUserService.activeUserExists(userId);
     }
 }

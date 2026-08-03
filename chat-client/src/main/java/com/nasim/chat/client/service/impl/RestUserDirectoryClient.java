@@ -40,7 +40,7 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public List<String> findAllValidMambers(List<String> memberIds,String accessToken) {
+    public List<String> findAllValidMembers(List<String> memberIds, String accessToken) {
         return userServiceClient.post()
                 .uri("/internal/users")
                 .body(memberIds)

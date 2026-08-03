@@ -21,7 +21,7 @@ public class Message extends BaseEntity<Long>{
   private Message replyToMessage;
 
   @Column(name = "sender_id",nullable = false)
-  private String SenderId;
+  private String senderId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "content_type",nullable = false)

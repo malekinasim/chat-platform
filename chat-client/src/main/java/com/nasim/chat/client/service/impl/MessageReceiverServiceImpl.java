@@ -22,10 +22,10 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
 
 
     @Override
-    public void saveReceivers(Message message, List<String> recivers) {
-        List<MessageReceiver> receivers = recivers.stream()
+    public void saveReceivers(Message message, List<String> receivers) {
+        List<MessageReceiver> receiverList = receivers.stream()
                         .map(memberId -> this.createReceiver(message, memberId))
                         .toList();
-        receiverRepository.saveAll(receivers);
+        receiverRepository.saveAll(receiverList);
     }
 }

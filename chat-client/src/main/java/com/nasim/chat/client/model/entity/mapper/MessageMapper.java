@@ -4,7 +4,7 @@ import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.SendMessageCommand;
 
-public class MassageMapper {
+public class MessageMapper {
     public static PublishedChatMessage toPublishedMessage(
             Message savedMessage,
             SendMessageCommand command

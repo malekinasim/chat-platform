@@ -64,19 +64,20 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public List<Long> findAll() {
+    public List<String> findAllActiveIds() {
         return appUserRepository.findAllByActiveTrue().stream()
-                .map(AppUser::getId).toList();
+                .map(appUser -> appUser.getId().toString()).toList();
     }
 
     @Override
-    public List<Long> findAllById(List<Long> ids) {
-        return appUserRepository.findAllByIdAndActiveTrue(ids).stream()
-                .map(AppUser::getId).toList();
+    public List<String> findAllActiveIdsById(List<Long> ids) {
+        return appUserRepository.findAllByIdInAndActiveTrue(ids).stream()
+                .map(appUser -> appUser.getId().toString()).toList();
     }
 
     @Override
-    public boolean existsByUsername(Long id) {
-        return appUserRepository.findById(id).isPresent();
+    public boolean activeUserExists(Long userId) {
+        return appUserRepository.existsByIdAndActiveTrue(userId);
     }
+
 }

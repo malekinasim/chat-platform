@@ -15,10 +15,11 @@ public interface AppUserService {
     AppUser createAppUser(String name, String email, String phoneNumber);
 
     AppUser completeRegistration( String phoneNumber, PendingRegistration userInfo);
+    
 
-    List<Long> findAll();
+    List<String> findAllActiveIds();
 
-    List<Long> findAllById(List<Long> ids);
+    List<String> findAllActiveIdsById(List<Long> ids);
 
-    boolean existsByUsername(Long receiver);
+    boolean activeUserExists(Long userId);
 }
