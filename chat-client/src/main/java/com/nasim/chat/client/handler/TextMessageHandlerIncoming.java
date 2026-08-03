@@ -20,14 +20,15 @@ public class TextMessageHandlerIncoming implements IncomingContentHandler {
                     "Text message cannot be empty"
             );
         }
-
         return new PublishedChatMessage(
                 message.deliveryType(),
                 message.messageContentType(),
                 message.sender(),
                 message.receiver(),
                 cleanedContent,
-                message.room()
+                message.room(),
+                message.messageId(),
+                message.createdAt()
         );
     }
 }
