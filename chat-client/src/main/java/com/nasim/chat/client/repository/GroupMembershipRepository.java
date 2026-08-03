@@ -18,4 +18,12 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
               and g.active = true
             """)
     List<GroupMembership> findUserAllActiveGroup(@Param("userId") String userId);
+    @Query("""
+            select gm from GroupMembership gm
+            join fetch gm.group g
+            where g.groupCode = :groupCode
+              and gm.active = true
+              and g.active = true
+            """)
+    List<GroupMembership> findMembersByGroupCode(@Param("userCode") String groupCode);
 }

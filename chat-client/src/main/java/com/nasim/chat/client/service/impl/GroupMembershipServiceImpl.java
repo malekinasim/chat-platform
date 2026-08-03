@@ -29,4 +29,10 @@ public class GroupMembershipServiceImpl implements GroupMembershipService {
                 .stream().map( groupMembership -> new ChatGroupDto(groupMembership.getGroup().getGroupName(),groupMembership.getGroup().getGroupCode())
         ).toList();
     }
+
+    @Override
+    public List<String> findMemberIdsByGroupCode(String groupCode) {
+       return groupMembershipRepository.findMembersByGroupCode(groupCode)
+               .stream().map(GroupMembership::getUserId).toList();
+    }
 }

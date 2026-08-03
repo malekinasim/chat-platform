@@ -1,6 +1,6 @@
 package com.nasim.chat.model.dto;
 
-public record OutgoingChatRequest(
+public record SendMessageCommand(
         DeliveryType deliveryType,
         MessageContentType messageContentType,
         String sender,
@@ -9,11 +9,11 @@ public record OutgoingChatRequest(
         String room
 ) {
 
-    public static OutgoingChatRequest broadcastText(
+    public static SendMessageCommand broadcastText(
             String sender,
             String text
     ) {
-        return new OutgoingChatRequest(
+        return new SendMessageCommand(
                 DeliveryType.BROADCAST,
                 MessageContentType.TEXT,
                 sender,
@@ -23,12 +23,12 @@ public record OutgoingChatRequest(
         );
     }
 
-    public static OutgoingChatRequest privateText(
+    public static SendMessageCommand privateText(
             String sender,
             String receiver,
             String text
     ) {
-        return new OutgoingChatRequest(
+        return new SendMessageCommand(
                 DeliveryType.PRIVATE,
                 MessageContentType.TEXT,
                 sender,
@@ -38,12 +38,12 @@ public record OutgoingChatRequest(
         );
     }
 
-    public static OutgoingChatRequest groupText(
+    public static SendMessageCommand groupText(
             String sender,
             String room,
             String text
     ) {
-        return new OutgoingChatRequest(
+        return new SendMessageCommand(
                 DeliveryType.GROUP,
                 MessageContentType.TEXT,
                 sender,

@@ -1,19 +1,20 @@
 package com.nasim.chat.client.controller;
 
-import com.nasim.chat.client.model.entity.ChatGroup;
 import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.service.GroupMembershipService;
+import com.nasim.chat.client.service.MessageService;
+import com.nasim.chat.client.service.ReceiverResolver;
+import com.nasim.chat.client.service.impl.ReceiverResolveRegistry;
 import com.nasim.chat.client.socket.client.ChatMessageTransport;
 import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
-import com.nasim.chat.model.dto.OutgoingChatRequest;
+import com.nasim.chat.model.dto.SendMessageCommand;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 @Controller
 @RestController
@@ -30,53 +30,49 @@ public class ChatBrowserController {
     private final ChatMessageTransport chatMessageTransport;
     private final SimpUserRegistry simpUserRegistry;
     private final GroupMembershipService groupMembershipService;
-    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService) {
+    private final ReceiverResolveRegistry receiverResolverRegistry;
+    private final MessageService messageService;
+    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService, ReceiverResolveRegistry receiverResolverRegistry, MessageService messageService) {
         this.chatMessageTransport = chatMessageTransport;
         this.simpUserRegistry = simpUserRegistry;
         this.groupMembershipService = groupMembershipService;
+        this.receiverResolverRegistry = receiverResolverRegistry;
+        this.messageService = messageService;
     }
     @MessageMapping("/chat/public")
     public void sendPublic(ChatMessageDto messageDto, Principal principal) {
-        chatMessageTransport.publish(
-                OutgoingChatRequest.broadcastText(
-                        SecurityUtils.authenticatedUsername(principal),
-                        messageDto.text()
-                )
+        SendMessageCommand message=    SendMessageCommand.broadcastText(
+                SecurityUtils.authenticatedUsername(principal),
+                messageDto.text()
         );
+        List<String> receiverIds =
+                receiverResolverRegistry.get(message.deliveryType()).resolveReceiverIds(message);
+        if(!receiverIds.isEmpty())
+            this.sendMessage(message,receiverIds);
     }
     @MessageMapping("/chat/private/{receiverId}")
-    public void sendPrivate(
-            ChatMessageDto messageDto,
-            @DestinationVariable String receiverId,
-            Principal principal
-    ) {
-        chatMessageTransport.publish(
-                OutgoingChatRequest.privateText(
-                        principal.getName(),
-                        receiverId,
-                        messageDto.text()
-                )
-        );
+    public void sendPrivate(ChatMessageDto messageDto, @DestinationVariable String receiverId, Principal principal) {
+        SendMessageCommand message=  SendMessageCommand.privateText(principal.getName(), receiverId, messageDto.text());
+        List<String> receiverIds = receiverResolverRegistry.get(message.deliveryType()).resolveReceiverIds(message);
+        if(!receiverIds.isEmpty())
+            this.sendMessage(message,receiverIds);
     }
-    @MessageMapping("/chat/room/{roomCode}")
-    public void sendToRoom(
-            ChatMessageDto messageDto,
-            @DestinationVariable String roomCode,
-            Principal principal
-    ) {
-        String userId = SecurityUtils.authenticatedUsername(principal);
 
+    @MessageMapping("/chat/room/{roomCode}")
+    public void sendToRoom(ChatMessageDto messageDto, @DestinationVariable String roomCode, Principal principal) {
+        String userId = SecurityUtils.authenticatedUsername(principal);
         if(!groupMembershipService.hasActiveMembership(userId, roomCode))
             throw new AuthorizationDeniedException("you don't have valid access right for sending message in this group");
-        chatMessageTransport.publish(
-                    OutgoingChatRequest.groupText(
-                            SecurityUtils.authenticatedUsername(principal),
-                            roomCode,
-                            messageDto.text()
-                    )
-            );
 
-
+        SendMessageCommand message= SendMessageCommand.groupText(SecurityUtils.authenticatedUsername(principal),
+                            roomCode, messageDto.text());
+        List<String> receiverIds = receiverResolverRegistry.get(message.deliveryType()).resolveReceiverIds(message);
+        if(!receiverIds.isEmpty())
+            this.sendMessage(message,receiverIds);
+    }
+    private void sendMessage(SendMessageCommand message,List<String> receiverIds){
+        messageService.saveTextMessage(message,receiverIds);
+        chatMessageTransport.publish(message);
     }
 
     @GetMapping("/api/chat/list/user-groups")
