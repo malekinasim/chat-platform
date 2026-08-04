@@ -16,7 +16,7 @@ public class Message extends BaseEntity<Long>{
   @Column(name = "destination_id")
   private String destinationId;
 
-  @OneToOne(fetch = FetchType.LAZY,targetEntity = Message.class)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reply_to_message_id")
   private Message replyToMessage;
 

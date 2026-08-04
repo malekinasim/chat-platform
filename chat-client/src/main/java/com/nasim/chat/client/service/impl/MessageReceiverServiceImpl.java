@@ -34,17 +34,18 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
 
     @Override
     @Transactional
-    public void markAsSent(Long messageId) {
-        List<MessageReceiver> receiverList= receiverRepository.findByMessageId(messageId);
-        receiverList.forEach(item->{
+    public void markAsSent(Long messageId, String receiverId) {
+        MessageReceiver receiver = receiverRepository
+                .findByMessage_IdAndReceiverId(messageId, receiverId)
+                .orElseThrow(() -> new AccessDeniedException(
+                        "The message does not belong to this receiver")
+                );
 
-            if (item.getReceiverStatus() == ReceiverStatus.PENDING) {
+        if (receiver.getReceiverStatus() == ReceiverStatus.PENDING) {
 
-                item.setReceiverStatus(ReceiverStatus.SENT);
-                item.setSendAt(Instant.now());
-            }
-        });
-        receiverRepository.saveAll(receiverList);
+            receiver.setReceiverStatus(ReceiverStatus.SENT);
+            receiver.setDeliveredAt(Instant.now());
+        }
     }
 
     @Override

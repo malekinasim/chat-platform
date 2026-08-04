@@ -21,7 +21,7 @@ public interface MessageReceiverService {
         return receiver;
     }
 
-    void markAsSent(Long messageId);
+    void markAsSent(Long messageId, String receiverId);
 
     void markAsDelivered(Long messageId, String receiverId);
 
