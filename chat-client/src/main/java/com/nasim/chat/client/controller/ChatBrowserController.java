@@ -4,11 +4,13 @@ import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.service.GroupMembershipService;
+import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
 import com.nasim.chat.client.service.impl.ReceiverResolveRegistry;
 import com.nasim.chat.client.socket.client.ChatMessageTransport;
 import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
+import com.nasim.chat.model.dto.MessageDeliveredCommand;
 import com.nasim.chat.model.dto.SendMessageCommand;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +35,14 @@ public class ChatBrowserController {
     private final GroupMembershipService groupMembershipService;
     private final ReceiverResolveRegistry receiverResolverRegistry;
     private final MessageService messageService;
-    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService, ReceiverResolveRegistry receiverResolverRegistry, MessageService messageService) {
+    private final MessageReceiverService messageReceiverService;
+    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService, ReceiverResolveRegistry receiverResolverRegistry, MessageService messageService, MessageReceiverService messageReceiverService) {
         this.chatMessageTransport = chatMessageTransport;
         this.simpUserRegistry = simpUserRegistry;
         this.groupMembershipService = groupMembershipService;
         this.receiverResolverRegistry = receiverResolverRegistry;
         this.messageService = messageService;
+        this.messageReceiverService = messageReceiverService;
     }
     @MessageMapping("/chat/public")
     public void sendPublic(ChatMessageDto messageDto, Principal principal, JwtAuthenticationToken authentication) {
@@ -74,6 +78,18 @@ public class ChatBrowserController {
     private void sendMessage(SendMessageCommand command, List<String> receiverIds) {
         Message savedMessage = messageService.saveTextMessage(command, receiverIds);
         chatMessageTransport.publish(MessageMapper.toPublishedMessage(savedMessage, command));
+    }
+
+    @MessageMapping("/chat/messages/delivered")
+    public void markMessageAsDelivered(MessageDeliveredCommand command, Principal principal) {
+        String receiverId = SecurityUtils.authenticatedUsername(principal);
+        messageReceiverService.markAsDelivered(command.messageId(), receiverId);
+    }
+
+    @MessageMapping("/chat/messages/read")
+    public void markMessageAsRead(MessageDeliveredCommand command, Principal principal) {
+        String receiverId = SecurityUtils.authenticatedUsername(principal);
+        messageReceiverService.markAsRead(command.messageId(), receiverId);
     }
 
     @GetMapping("/api/chat/list/user-groups")

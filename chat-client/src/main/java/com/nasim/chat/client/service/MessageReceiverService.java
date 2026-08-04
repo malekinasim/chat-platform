@@ -3,8 +3,6 @@ package com.nasim.chat.client.service;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
-import com.nasim.chat.model.dto.DeliveryType;
-import com.nasim.chat.model.dto.SendMessageCommand;
 
 import java.util.List;
 
@@ -22,4 +20,10 @@ public interface MessageReceiverService {
         receiver.setReceiverStatus(ReceiverStatus.PENDING);
         return receiver;
     }
+
+    void markAsSent(Long messageId);
+
+    void markAsDelivered(Long messageId, String receiverId);
+
+    void markAsRead(Long aLong, String receiverId);
 }

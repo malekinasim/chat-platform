@@ -31,7 +31,7 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     @Override
     public boolean userExists(String receiver, String accessToken) {
         Boolean response = userServiceClient.get()
-                .uri("/internal/user/{receiver}", receiver)
+                .uri("/internal/users/{receiver}/exists", receiver)
                 .headers(headers -> headers.setBearerAuth(accessToken))
                 .retrieve()
                 .body(Boolean.class);
@@ -42,7 +42,7 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     @Override
     public List<String> findAllValidMembers(List<String> memberIds, String accessToken) {
         return userServiceClient.post()
-                .uri("/internal/users")
+                .uri("/internal/users/active/ids/filter")
                 .body(memberIds)
                 .headers(headers ->
                         headers.setBearerAuth(accessToken)

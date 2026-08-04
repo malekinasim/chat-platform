@@ -1,5 +1,5 @@
 package com.nasim.chat.client.model.entity;
 
 public enum ReceiverStatus {
-    PENDING, DELIVERED,READ;
+    PENDING,SENT, DELIVERED,READ;
 }

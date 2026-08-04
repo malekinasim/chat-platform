@@ -21,6 +21,8 @@ public class MessageReceiver extends BaseEntity<Long> {
     private ReceiverStatus receiverStatus;
     @Column(name = "delivered_at")
     private Instant deliveredAt;
+    @Column(name = "send_at")
+    private Instant sendAt;
     @Column(name = "read_at")
     private Instant readAt;
 }
