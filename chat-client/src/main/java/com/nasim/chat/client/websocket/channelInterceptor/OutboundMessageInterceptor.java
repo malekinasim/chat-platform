@@ -1,6 +1,4 @@
 package com.nasim.chat.client.websocket.channelInterceptor;
-
-import com.nasim.chat.client.model.entity.ReceiverStatus;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.jspecify.annotations.Nullable;
@@ -23,7 +21,7 @@ public class OutboundMessageInterceptor implements ChannelInterceptor {
 
             if (payload instanceof PublishedChatMessage publishedMessage) {
                 Long messageId = publishedMessage.messageId();
-                messageReceiverService.markAsSent(messageId;
+                messageReceiverService.markAsSent(messageId);
             }
 
 
