@@ -3,12 +3,15 @@ package com.nasim.chat.client.service;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 
 import java.util.List;
 
 public interface MessageReceiverService {
 
     void saveReceivers(Message message, List<String> receivers);
+
+    List<PublishedChatMessage> getMissedPrivateMessages(String receiverId);
 
     default MessageReceiver createReceiver(
             Message message,

@@ -3,17 +3,15 @@ package com.nasim.chat.client.service.impl;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
+import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageReceiverRepository;
-import com.nasim.chat.client.service.GroupMembershipService;
-import com.nasim.chat.model.dto.DeliveryType;
-import com.nasim.chat.model.dto.SendMessageCommand;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MessageReceiverServiceImpl implements com.nasim.chat.client.service.MessageReceiverService {
@@ -30,6 +28,15 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
                         .map(memberId -> this.createReceiver(message, memberId))
                         .toList();
         receiverRepository.saveAll(receiverList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PublishedChatMessage> getMissedPrivateMessages(String receiverId) {
+        return receiverRepository.findPendingPrivateMessages(receiverId).stream()
+                .map(receiver -> MessageMapper.toPublishedMessage(
+                        receiver.getMessage(), receiver.getReceiverId()))
+                .toList();
     }
 
     @Override
