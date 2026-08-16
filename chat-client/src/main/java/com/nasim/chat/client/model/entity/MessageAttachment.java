@@ -9,7 +9,7 @@ import lombok.Setter;
 @Table(name = "message_attachment")
 @Getter
 @Setter
-public class MessageAttachment {
+public class MessageAttachment extends  BaseEntity<Long> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Message.class)
     @JoinColumn(name = "message_id", nullable = false)
     private Message message;
