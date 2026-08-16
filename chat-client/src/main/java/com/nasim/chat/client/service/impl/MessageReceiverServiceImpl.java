@@ -51,7 +51,7 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
         if (receiver.getReceiverStatus() == ReceiverStatus.PENDING) {
 
             receiver.setReceiverStatus(ReceiverStatus.SENT);
-            receiver.setDeliveredAt(Instant.now());
+            receiver.setSendAt(Instant.now());
         }
     }
 
