@@ -33,7 +33,7 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
     @Override
     @Transactional(readOnly = true)
     public List<PublishedChatMessage> getMissedPrivateMessages(String receiverId) {
-        return receiverRepository.findPendingPrivateMessages(receiverId).stream()
+        return receiverRepository.findReplayablePrivateMessages(receiverId).stream()
                 .map(receiver -> MessageMapper.toPublishedMessage(
                         receiver.getMessage(), receiver.getReceiverId()))
                 .toList();

@@ -16,9 +16,12 @@ public interface MessageReceiverRepository extends JpaRepository<MessageReceiver
             from MessageReceiver receiver
             join fetch receiver.message message
             where receiver.receiverId = :receiverId
-              and receiver.receiverStatus = com.nasim.chat.client.model.entity.ReceiverStatus.PENDING
+              and receiver.receiverStatus in (
+                  com.nasim.chat.client.model.entity.ReceiverStatus.PENDING,
+                  com.nasim.chat.client.model.entity.ReceiverStatus.SENT
+              )
               and message.deliveryType = com.nasim.chat.model.dto.DeliveryType.PRIVATE
             order by message.createdAt asc, message.id asc
             """)
-    List<MessageReceiver> findPendingPrivateMessages(@Param("receiverId") String receiverId);
+    List<MessageReceiver> findReplayablePrivateMessages(@Param("receiverId") String receiverId);
 }

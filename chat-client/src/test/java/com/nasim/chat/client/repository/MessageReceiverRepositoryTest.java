@@ -25,15 +25,16 @@ class MessageReceiverRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    void findsOnlyPendingPrivateMessagesForReceiverInCreationOrderThenIdOrder() {
+    void findsReplayablePrivateMessagesForReceiverInCreationOrderThenIdOrder() {
         MessageReceiver later = persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.PRIVATE, "later");
-        MessageReceiver firstAtSameTime = persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.PRIVATE, "first-at-same-time");
-        MessageReceiver secondAtSameTime = persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.PRIVATE, "second-at-same-time");
+        MessageReceiver firstAtSameTime = persistReceiver("target", ReceiverStatus.SENT, DeliveryType.PRIVATE, "sent-first-at-same-time");
+        MessageReceiver secondAtSameTime = persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.PRIVATE, "pending-second-at-same-time");
 
         persistReceiver("someone-else", ReceiverStatus.PENDING, DeliveryType.PRIVATE, "wrong receiver");
-        persistReceiver("target", ReceiverStatus.SENT, DeliveryType.PRIVATE, "wrong status");
+        persistReceiver("target", ReceiverStatus.DELIVERED, DeliveryType.PRIVATE, "delivered");
+        persistReceiver("target", ReceiverStatus.READ, DeliveryType.PRIVATE, "read");
         persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.GROUP, "group");
-        persistReceiver("target", ReceiverStatus.PENDING, DeliveryType.BROADCAST, "broadcast");
+        persistReceiver("target", ReceiverStatus.SENT, DeliveryType.BROADCAST, "broadcast");
 
         entityManager.flush();
         setMessageCreationTime(later, LocalDateTime.of(2026, 1, 2, 12, 0));
@@ -41,18 +42,19 @@ class MessageReceiverRepositoryTest {
         setMessageCreationTime(secondAtSameTime, LocalDateTime.of(2026, 1, 1, 12, 0));
         entityManager.clear();
 
-        List<MessageReceiver> result = repository.findPendingPrivateMessages("target");
+        List<MessageReceiver> result = repository.findReplayablePrivateMessages("target");
 
         assertThat(result)
                 .extracting(receiver -> receiver.getMessage().getTextContent())
-                .containsExactly("first-at-same-time", "second-at-same-time", "later");
+                .containsExactly("sent-first-at-same-time", "pending-second-at-same-time", "later");
     }
 
     @Test
-    void returnsEmptyListWhenReceiverHasNoPendingPrivateMessages() {
+    void returnsEmptyListWhenReceiverHasNoReplayablePrivateMessages() {
+        persistReceiver("target", ReceiverStatus.DELIVERED, DeliveryType.PRIVATE, "already delivered");
         persistReceiver("target", ReceiverStatus.READ, DeliveryType.PRIVATE, "already read");
 
-        assertThat(repository.findPendingPrivateMessages("target")).isEmpty();
+        assertThat(repository.findReplayablePrivateMessages("target")).isEmpty();
     }
 
     private MessageReceiver persistReceiver(

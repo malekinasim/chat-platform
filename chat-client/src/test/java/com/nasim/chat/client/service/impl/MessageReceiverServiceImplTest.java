@@ -42,7 +42,7 @@ class MessageReceiverServiceImplTest {
         MessageReceiver receiver = new MessageReceiver();
         receiver.setMessage(message);
         receiver.setReceiverId("receiver-id");
-        when(repository.findPendingPrivateMessages("receiver-id")).thenReturn(List.of(receiver));
+        when(repository.findReplayablePrivateMessages("receiver-id")).thenReturn(List.of(receiver));
 
         List<PublishedChatMessage> result = service.getMissedPrivateMessages("receiver-id");
 
@@ -56,13 +56,14 @@ class MessageReceiverServiceImplTest {
                 42L,
                 createdAt
         ));
-        verify(repository).findPendingPrivateMessages("receiver-id");
+        verify(repository).findReplayablePrivateMessages("receiver-id");
     }
 
     @Test
     void returnsEmptyListWhenRepositoryHasNoMessages() {
-        when(repository.findPendingPrivateMessages("receiver-id")).thenReturn(List.of());
+        when(repository.findReplayablePrivateMessages("receiver-id")).thenReturn(List.of());
 
         assertThat(service.getMissedPrivateMessages("receiver-id")).isEmpty();
+        verify(repository).findReplayablePrivateMessages("receiver-id");
     }
 }
