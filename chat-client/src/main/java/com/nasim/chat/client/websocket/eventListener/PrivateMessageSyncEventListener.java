@@ -70,11 +70,14 @@ public class PrivateMessageSyncEventListener {
         if (!privateMessageSyncRegistry.tryStartSessionSync(userId, sessionId)) {
             return;
         }
-        CompletableFuture<Void> syncFuture =  privateMessageSyncRegistry.runOrJoinUserSync(userId,
-                ()-> CompletableFuture.runAsync(
-                        ()-> this.syncPrivateMessages(userId)
-                  )
-                );
+        CompletableFuture<List<PublishedChatMessage>> queryFuture =
+                privateMessageSyncRegistry.runOrJoinUserQuery(userId,
+                        () -> CompletableFuture.supplyAsync(
+                                () -> messageReceiverService.getMissedPrivateMessages(userId)
+                        ));
+        CompletableFuture<Void> syncFuture = queryFuture.thenAcceptAsync(
+                messages -> messages.forEach(messageDispatcher::dispatch)
+        );
         syncFuture.whenComplete((ignored, error) -> {
             if (error == null) {
                 privateMessageSyncRegistry.completeSessionSync(sessionId);
@@ -92,11 +95,5 @@ public class PrivateMessageSyncEventListener {
         String sessionId = accessor.getSessionId();
         privateMessageSyncRegistry.removeSession(sessionId);
 
-    }
-    private void syncPrivateMessages(String userId) {
-        List<PublishedChatMessage> publishedChatMessages= messageReceiverService.getMissedPrivateMessages(userId);
-        publishedChatMessages.forEach(
-                messageDispatcher::dispatch
-        );
     }
 }

@@ -1,7 +1,9 @@
 package com.nasim.chat.client.websocket.eventListener;
 
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +17,7 @@ public class PrivateMessageSyncRegistry {
 
     private final ConcurrentMap<String, SessionSyncEntry> sessionsById =
             new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, CompletableFuture<Void>> activeSyncsByUser =
+    private final ConcurrentMap<String, CompletableFuture<List<PublishedChatMessage>>> activeQueriesByUser =
             new ConcurrentHashMap<>();
 
     public boolean registerSession(String userId, String sessionId) {
@@ -45,20 +47,20 @@ public class PrivateMessageSyncRegistry {
         return transitioned.get();
     }
 
-    public CompletableFuture<Void> runOrJoinUserSync(
+    public CompletableFuture<List<PublishedChatMessage>> runOrJoinUserQuery(
             String userId,
-            Supplier<CompletableFuture<Void>> syncOperation
+            Supplier<CompletableFuture<List<PublishedChatMessage>>> queryOperation
     ) {
         Objects.requireNonNull(userId, "userId must not be null");
-        Objects.requireNonNull(syncOperation, "syncOperation must not be null");
+        Objects.requireNonNull(queryOperation, "queryOperation must not be null");
 
-        CompletableFuture<Void> activeFuture = activeSyncsByUser.computeIfAbsent(
+        CompletableFuture<List<PublishedChatMessage>> activeFuture = activeQueriesByUser.computeIfAbsent(
                 userId,
                 ignored -> {
                     try {
                         return Objects.requireNonNull(
-                                syncOperation.get(),
-                                "syncOperation must not return null"
+                                queryOperation.get(),
+                                "queryOperation must not return null"
                         );
                     } catch (RuntimeException error) {
                         return CompletableFuture.failedFuture(error);
@@ -66,7 +68,7 @@ public class PrivateMessageSyncRegistry {
                 }
         );
         activeFuture.whenComplete((ignored, error) ->
-                activeSyncsByUser.remove(userId, activeFuture));
+                activeQueriesByUser.remove(userId, activeFuture));
         return activeFuture;
     }
 

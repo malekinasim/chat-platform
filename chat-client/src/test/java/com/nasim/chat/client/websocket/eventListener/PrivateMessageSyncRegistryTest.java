@@ -1,5 +1,6 @@
 package com.nasim.chat.client.websocket.eventListener;
 
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -99,15 +100,15 @@ class PrivateMessageSyncRegistryTest {
         CountDownLatch ready = new CountDownLatch(callerCount);
         CountDownLatch start = new CountDownLatch(1);
         AtomicInteger invocationCount = new AtomicInteger();
-        CompletableFuture<Void> operation = new CompletableFuture<>();
+        CompletableFuture<List<PublishedChatMessage>> operation = new CompletableFuture<>();
 
         try (ExecutorService executor = Executors.newFixedThreadPool(callerCount)) {
-            List<Future<CompletableFuture<Void>>> calls = new ArrayList<>();
+            List<Future<CompletableFuture<List<PublishedChatMessage>>>> calls = new ArrayList<>();
             for (int i = 0; i < callerCount; i++) {
                 calls.add(executor.submit(() -> {
                     ready.countDown();
                     start.await();
-                    return registry.runOrJoinUserSync("user", () -> {
+                    return registry.runOrJoinUserQuery("user", () -> {
                         invocationCount.incrementAndGet();
                         return operation;
                     });
@@ -116,34 +117,34 @@ class PrivateMessageSyncRegistryTest {
             assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
             start.countDown();
 
-            List<CompletableFuture<Void>> results = new ArrayList<>();
-            for (Future<CompletableFuture<Void>> call : calls) {
+            List<CompletableFuture<List<PublishedChatMessage>>> results = new ArrayList<>();
+            for (Future<CompletableFuture<List<PublishedChatMessage>>> call : calls) {
                 results.add(call.get(5, TimeUnit.SECONDS));
             }
             assertThat(invocationCount).hasValue(1);
             assertThat(results).allMatch(result -> result == results.getFirst());
             assertThat(results.getFirst()).isSameAs(operation);
 
-            operation.complete(null);
+            operation.complete(List.of());
             results.getFirst().join();
         }
     }
 
     @Test
     void differentUsersHaveIndependentOperations() {
-        CompletableFuture<Void> firstOperation = new CompletableFuture<>();
-        CompletableFuture<Void> secondOperation = new CompletableFuture<>();
+        CompletableFuture<List<PublishedChatMessage>> firstOperation = new CompletableFuture<>();
+        CompletableFuture<List<PublishedChatMessage>> secondOperation = new CompletableFuture<>();
 
-        CompletableFuture<Void> first = registry.runOrJoinUserSync("first", () -> firstOperation);
-        CompletableFuture<Void> second = registry.runOrJoinUserSync("second", () -> secondOperation);
+        CompletableFuture<List<PublishedChatMessage>> first = registry.runOrJoinUserQuery("first", () -> firstOperation);
+        CompletableFuture<List<PublishedChatMessage>> second = registry.runOrJoinUserQuery("second", () -> secondOperation);
 
         assertThat(first).isSameAs(firstOperation);
         assertThat(second).isSameAs(secondOperation);
         assertThat(first).isNotSameAs(second);
-        firstOperation.complete(null);
+        firstOperation.complete(List.of());
         assertThat(first).isCompleted();
         assertThat(second).isNotDone();
-        secondOperation.complete(null);
+        secondOperation.complete(List.of());
     }
 
     @Test
@@ -210,17 +211,17 @@ class PrivateMessageSyncRegistryTest {
     @Test
     void successfulCompletionAllowsLaterOperation() {
         AtomicInteger invocationCount = new AtomicInteger();
-        CompletableFuture<Void> operation = new CompletableFuture<>();
-        CompletableFuture<Void> first = registry.runOrJoinUserSync("user", () -> {
+        CompletableFuture<List<PublishedChatMessage>> operation = new CompletableFuture<>();
+        CompletableFuture<List<PublishedChatMessage>> first = registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
             return operation;
         });
 
-        operation.complete(null);
+        operation.complete(List.of());
         first.join();
-        CompletableFuture<Void> second = registry.runOrJoinUserSync("user", () -> {
+        CompletableFuture<List<PublishedChatMessage>> second = registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(List.of());
         });
 
         assertThat(second).isNotSameAs(first).isCompleted();
@@ -230,17 +231,17 @@ class PrivateMessageSyncRegistryTest {
     @Test
     void exceptionalCompletionAllowsRetry() {
         AtomicInteger invocationCount = new AtomicInteger();
-        CompletableFuture<Void> operation = new CompletableFuture<>();
-        CompletableFuture<Void> first = registry.runOrJoinUserSync("user", () -> {
+        CompletableFuture<List<PublishedChatMessage>> operation = new CompletableFuture<>();
+        CompletableFuture<List<PublishedChatMessage>> first = registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
             return operation;
         });
 
         operation.completeExceptionally(new IllegalStateException("replay failed"));
         assertThatThrownBy(first::join).hasCauseInstanceOf(IllegalStateException.class);
-        CompletableFuture<Void> retry = registry.runOrJoinUserSync("user", () -> {
+        CompletableFuture<List<PublishedChatMessage>> retry = registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(List.of());
         });
 
         assertThat(retry).isCompleted();
@@ -251,13 +252,13 @@ class PrivateMessageSyncRegistryTest {
     void alreadyCompletedFutureIsNotCached() {
         AtomicInteger invocationCount = new AtomicInteger();
 
-        registry.runOrJoinUserSync("user", () -> {
+        registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(List.of());
         }).join();
-        registry.runOrJoinUserSync("user", () -> {
+        registry.runOrJoinUserQuery("user", () -> {
             invocationCount.incrementAndGet();
-            return CompletableFuture.completedFuture(null);
+            return CompletableFuture.completedFuture(List.of());
         }).join();
 
         assertThat(invocationCount).hasValue(2);
@@ -265,14 +266,14 @@ class PrivateMessageSyncRegistryTest {
 
     @Test
     void synchronouslyThrowingSupplierReturnsFailedFutureAndAllowsRetry() {
-        CompletableFuture<Void> failed = registry.runOrJoinUserSync("user", () -> {
+        CompletableFuture<List<PublishedChatMessage>> failed = registry.runOrJoinUserQuery("user", () -> {
             throw new IllegalStateException("could not start");
         });
 
         assertThatThrownBy(failed::join).hasCauseInstanceOf(IllegalStateException.class);
-        assertThat(registry.runOrJoinUserSync(
+        assertThat(registry.runOrJoinUserQuery(
                 "user",
-                () -> CompletableFuture.completedFuture(null)
+                () -> CompletableFuture.completedFuture(List.of())
         )).isCompleted();
     }
 
@@ -280,23 +281,23 @@ class PrivateMessageSyncRegistryTest {
     void supplierErrorIsPropagatedAndDoesNotCreateAnActiveSync() {
         AssertionError error = new AssertionError("fatal failure");
 
-        assertThatThrownBy(() -> registry.runOrJoinUserSync("user", () -> {
+        assertThatThrownBy(() -> registry.runOrJoinUserQuery("user", () -> {
             throw error;
         })).isSameAs(error);
-        assertThat(registry.runOrJoinUserSync(
+        assertThat(registry.runOrJoinUserQuery(
                 "user",
-                () -> CompletableFuture.completedFuture(null)
+                () -> CompletableFuture.completedFuture(List.of())
         )).isCompleted();
     }
 
     @Test
     void nullOperationFutureReturnsFailedFutureAndAllowsRetry() {
-        CompletableFuture<Void> failed = registry.runOrJoinUserSync("user", () -> null);
+        CompletableFuture<List<PublishedChatMessage>> failed = registry.runOrJoinUserQuery("user", () -> null);
 
         assertThatThrownBy(failed::join).hasCauseInstanceOf(NullPointerException.class);
-        assertThat(registry.runOrJoinUserSync(
+        assertThat(registry.runOrJoinUserQuery(
                 "user",
-                () -> CompletableFuture.completedFuture(null)
+                () -> CompletableFuture.completedFuture(List.of())
         )).isCompleted();
     }
 }

@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -88,15 +90,18 @@ class PrivateMessageSyncEventListenerTest {
         listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
 
         verify(registry).tryStartSessionSync("user-1", "session-1");
-        verify(registry, never()).runOrJoinUserSync(any(), any());
+        verify(registry, never()).runOrJoinUserQuery(any(), any());
         verifyNoInteractions(messageReceiverService, messageDispatcher);
     }
 
     @Test
     void validSubscriptionStartsOrJoinsUserOperationAndReplaysEveryMessage() {
-        CompletableFuture<Void> joinedFuture = new CompletableFuture<>();
         when(registry.tryStartSessionSync("user-1", "session-1")).thenReturn(true);
-        when(registry.runOrJoinUserSync(any(), any())).thenReturn(joinedFuture);
+        when(registry.runOrJoinUserQuery(any(), any())).thenAnswer(invocation -> {
+            Supplier<CompletableFuture<List<PublishedChatMessage>>> query =
+                    invocation.getArgument(1);
+            return query.get();
+        });
         PublishedChatMessage first = org.mockito.Mockito.mock(PublishedChatMessage.class);
         PublishedChatMessage second = org.mockito.Mockito.mock(PublishedChatMessage.class);
         when(messageReceiverService.getMissedPrivateMessages("user-1"))
@@ -105,35 +110,55 @@ class PrivateMessageSyncEventListenerTest {
         listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
 
         @SuppressWarnings("unchecked")
-        ArgumentCaptor<Supplier<CompletableFuture<Void>>> operation =
+        ArgumentCaptor<Supplier<CompletableFuture<List<PublishedChatMessage>>>> operation =
                 ArgumentCaptor.forClass(Supplier.class);
-        verify(registry).runOrJoinUserSync(org.mockito.ArgumentMatchers.eq("user-1"),
+        verify(registry).runOrJoinUserQuery(org.mockito.ArgumentMatchers.eq("user-1"),
                 operation.capture());
-        operation.getValue().get().join();
-
         verify(messageReceiverService).getMissedPrivateMessages("user-1");
-        verify(messageDispatcher).dispatch(first);
-        verify(messageDispatcher).dispatch(second);
+        verify(messageDispatcher, timeout(1_000)).dispatch(first);
+        verify(messageDispatcher, timeout(1_000)).dispatch(second);
         verifyNoMoreInteractions(messageReceiverService, messageDispatcher);
     }
 
     @Test
+    void sessionsSharingAQueryEachDispatchTheEntireResult() {
+        CompletableFuture<List<PublishedChatMessage>> sharedQuery = new CompletableFuture<>();
+        PublishedChatMessage first = org.mockito.Mockito.mock(PublishedChatMessage.class);
+        PublishedChatMessage second = org.mockito.Mockito.mock(PublishedChatMessage.class);
+        when(registry.tryStartSessionSync("user-1", "session-1")).thenReturn(true);
+        when(registry.tryStartSessionSync("user-1", "session-2")).thenReturn(true);
+        when(registry.runOrJoinUserQuery(any(), any())).thenReturn(sharedQuery);
+
+        listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
+        listener.handleSubscribe(privateSubscribeEvent("session-2", () -> "user-1"));
+        sharedQuery.complete(List.of(first, second));
+
+        verify(messageDispatcher, timeout(1_000).times(2)).dispatch(first);
+        verify(messageDispatcher, timeout(1_000).times(2)).dispatch(second);
+        verify(registry, timeout(1_000)).completeSessionSync("session-1");
+        verify(registry, timeout(1_000)).completeSessionSync("session-2");
+        verify(registry, times(2)).runOrJoinUserQuery(
+                org.mockito.ArgumentMatchers.eq("user-1"), any());
+        verifyNoInteractions(messageReceiverService);
+    }
+
+    @Test
     void successfulCompletionCompletesOnlyParticipatingSession() {
-        CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
+        CompletableFuture<List<PublishedChatMessage>> joinedFuture = preparedSuccessfulTransition("session-1");
 
         listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
         verify(registry, never()).completeSessionSync(any());
 
-        joinedFuture.complete(null);
+        joinedFuture.complete(List.of());
 
-        verify(registry).completeSessionSync("session-1");
+        verify(registry, timeout(1_000)).completeSessionSync("session-1");
         verify(registry, never()).completeSessionSync("session-2");
         verify(registry, never()).resetSessionSync(any());
     }
 
     @Test
     void exceptionalCompletionResetsOnlyParticipatingSession() {
-        CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
+        CompletableFuture<List<PublishedChatMessage>> joinedFuture = preparedSuccessfulTransition("session-1");
 
         listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
         joinedFuture.completeExceptionally(new IllegalStateException("replay failed"));
@@ -156,10 +181,11 @@ class PrivateMessageSyncEventListenerTest {
         verifyNoInteractions(messageReceiverService, messageDispatcher);
     }
 
-    private CompletableFuture<Void> preparedSuccessfulTransition(String sessionId) {
-        CompletableFuture<Void> joinedFuture = new CompletableFuture<>();
+    private CompletableFuture<List<PublishedChatMessage>> preparedSuccessfulTransition(
+            String sessionId) {
+        CompletableFuture<List<PublishedChatMessage>> joinedFuture = new CompletableFuture<>();
         when(registry.tryStartSessionSync("user-1", sessionId)).thenReturn(true);
-        when(registry.runOrJoinUserSync(any(), any())).thenReturn(joinedFuture);
+        when(registry.runOrJoinUserQuery(any(), any())).thenReturn(joinedFuture);
         return joinedFuture;
     }
 
