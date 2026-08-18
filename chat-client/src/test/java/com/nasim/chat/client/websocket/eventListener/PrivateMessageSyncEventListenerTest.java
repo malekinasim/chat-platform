@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.ApplicationContextFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -44,8 +45,8 @@ class PrivateMessageSyncEventListenerTest {
     @Mock
     private IncomingMessageDispatcher messageDispatcher;
 
-    @InjectMocks
-    private ApplicationEventPublisher publisher;
+
+
 
     @InjectMocks
     private PrivateMessageSyncEventListener listener;
@@ -54,6 +55,7 @@ class PrivateMessageSyncEventListenerTest {
 
     @Test
     void authenticatedConnectedSessionIsRegisteredWithAuthenticatedUserId() {
+
         listener.handleConnected(connectedEvent("session-1", () -> "user-1"));
 
         verify(registry).registerSession("user-1", "session-1");
@@ -74,11 +76,11 @@ class PrivateMessageSyncEventListenerTest {
     void onlyExactPrivateDestinationCanStartReplay() {
         Principal principal = () -> "user-1";
 
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", principal.getName()));
 
         verifyNoInteractions(registry, messageReceiverService, messageDispatcher);
     }
@@ -87,7 +89,7 @@ class PrivateMessageSyncEventListenerTest {
     void validSubscriptionDoesNotRunUserOperationWhenSessionTransitionFails() {
         when(registry.tryStartSessionSync("user-1", "session-1")).thenReturn(false);
 
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
 
         verify(registry).tryStartSessionSync("user-1", "session-1");
         verify(registry, never()).runOrJoinUserSync(any(), any());
@@ -104,7 +106,7 @@ class PrivateMessageSyncEventListenerTest {
         when(messageReceiverService.getMissedPrivateMessages("user-1"))
                 .thenReturn(List.of(first, second));
 
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Supplier<CompletableFuture<Void>>> operation =
@@ -123,7 +125,7 @@ class PrivateMessageSyncEventListenerTest {
     void successfulCompletionCompletesOnlyParticipatingSession() {
         CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
 
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1", "user-1"));
         verify(registry, never()).completeSessionSync(any());
 
         joinedFuture.complete(null);
@@ -137,7 +139,7 @@ class PrivateMessageSyncEventListenerTest {
     void exceptionalCompletionResetsOnlyParticipatingSession() {
         CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
 
-        publisher.publishEvent(new PrivateSubscriptionReadyEvent("session-1",  "user-1"));
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent("session-1",  "user-1"));
         joinedFuture.completeExceptionally(new IllegalStateException("replay failed"));
 
         verify(registry).resetSessionSync("session-1");
@@ -167,16 +169,6 @@ class PrivateMessageSyncEventListenerTest {
     private SessionConnectedEvent connectedEvent(String sessionId, Principal principal) {
         return new SessionConnectedEvent(
                 this, message(StompCommand.CONNECTED, sessionId, principal, null), principal);
-    }
-
-    private SessionSubscribeEvent privateSubscribeEvent(String sessionId, Principal principal) {
-        return subscribeEvent(sessionId, principal, WebSocketConfig.PRIVATE_TOPIC_PREFIX);
-    }
-
-    private SessionSubscribeEvent subscribeEvent(
-            String sessionId, Principal principal, String destination) {
-        return new SessionSubscribeEvent(
-                this, message(StompCommand.SUBSCRIBE, sessionId, principal, destination), principal);
     }
 
     private Message<byte[]> message(

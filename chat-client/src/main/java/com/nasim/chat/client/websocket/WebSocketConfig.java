@@ -1,6 +1,7 @@
 package com.nasim.chat.client.websocket;
 
 import com.nasim.chat.client.websocket.channelInterceptor.OutboundMessageInterceptor;
+import com.nasim.chat.client.websocket.channelInterceptor.PrivateSubscriptionReadyInterceptor;
 import com.nasim.chat.client.websocket.channelInterceptor.RoomSubscriptionAuthorizationInterceptor;
 import com.nasim.chat.client.websocket.channelInterceptor.StompAuthenticationChannelInterceptor;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
     private final StompAuthenticationChannelInterceptor authenticationInterceptor;
     private final RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor;
     private final OutboundMessageInterceptor outboundMessageInterceptor;
-    public WebSocketConfig(StompAuthenticationChannelInterceptor authenticationInterceptor, RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor, OutboundMessageInterceptor outboundMessageInterceptor) {
+    private final PrivateSubscriptionReadyInterceptor privateSubscriptionReadyInterceptor;
+    public WebSocketConfig(StompAuthenticationChannelInterceptor authenticationInterceptor, RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor, OutboundMessageInterceptor outboundMessageInterceptor, PrivateSubscriptionReadyInterceptor privateSubscriptionReadyInterceptor) {
         this.authenticationInterceptor = authenticationInterceptor;
         this.roomSubscriptionAuthorizationInterceptor = roomSubscriptionAuthorizationInterceptor;
         this.outboundMessageInterceptor = outboundMessageInterceptor;
+        this.privateSubscriptionReadyInterceptor = privateSubscriptionReadyInterceptor;
     }
 
     @Override
@@ -38,7 +41,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-       registration.interceptors(authenticationInterceptor,roomSubscriptionAuthorizationInterceptor);
+       registration.interceptors(authenticationInterceptor,
+               roomSubscriptionAuthorizationInterceptor,
+               privateSubscriptionReadyInterceptor);
     }
 
     @Override
