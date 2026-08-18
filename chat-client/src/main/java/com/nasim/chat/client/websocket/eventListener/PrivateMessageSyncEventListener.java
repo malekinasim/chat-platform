@@ -95,15 +95,6 @@ public class PrivateMessageSyncEventListener {
         privateMessageSyncRegistry.removeSession(sessionId);
 
     }
-    @EventListener
-    private void handelDisconnect(SessionUnsubscribeEvent event){
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.wrap(event.getMessage());
-
-        String sessionId = accessor.getSessionId();
-        privateMessageSyncRegistry.removeSession(sessionId);
-
-    }
     private void syncPrivateMessages(String userId) {
         List<PublishedChatMessage> publishedChatMessages= messageReceiverService.getMissedPrivateMessages(userId);
         publishedChatMessages.forEach(
