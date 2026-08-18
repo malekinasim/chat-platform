@@ -32,6 +32,5 @@ public class PrivateWebSocketDeliveryHandler implements WebSocketDeliveryHandler
                 headers
         );
         System.out.println("Publication completed");
-
     }
 }

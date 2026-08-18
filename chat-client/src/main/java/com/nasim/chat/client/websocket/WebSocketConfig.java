@@ -14,6 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
     public static final String ROOM_TOPIC_PREFIX = "/topic/room/";
+    public static final String PRIVATE_TOPIC_PREFIX = "/user/queue/private";
     private final StompAuthenticationChannelInterceptor authenticationInterceptor;
     private final RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor;
     private final OutboundMessageInterceptor outboundMessageInterceptor;
