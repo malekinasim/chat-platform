@@ -24,8 +24,6 @@ public class RoomSubscriptionAuthorizationInterceptor implements ChannelIntercep
     public @Nullable Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         String destination = accessor.getDestination();
-        String sessionId = accessor.getSessionId();
-        String subscriptionId = accessor.getSubscriptionId();
 
         if (destination != null && destination.startsWith(WebSocketConfig.ROOM_TOPIC_PREFIX)) {
             String roomCode =

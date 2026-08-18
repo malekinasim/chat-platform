@@ -2,14 +2,12 @@ package com.nasim.chat.client.websocket.eventListener;
 
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.socket.listener.IncomingMessageDispatcher;
-import com.nasim.chat.client.websocket.WebSocketConfig;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import java.security.Principal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -47,26 +45,15 @@ public class PrivateMessageSyncEventListener {
     }
 
     @EventListener
-    public void handleSubscribe(SessionSubscribeEvent event) {
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.wrap(event.getMessage());
+    public void handlePrivateSubscriptionReady(PrivateSubscriptionReadyEvent event) {
+        String sessionId = event.sessionId();
+        String userId = event.userId();
 
-        String sessionId = accessor.getSessionId();
-        Principal principal = accessor.getUser();
-        String destination=accessor.getDestination();
-        if (sessionId == null || principal == null) {
+        if (sessionId == null || sessionId.isBlank() ||
+                userId == null || userId.isBlank()) {
             return;
         }
 
-        String userId = principal.getName();
-
-        if (userId == null || userId.isBlank()) {
-            return;
-        }
-        if (destination == null ||
-                !destination.equals(WebSocketConfig.PRIVATE_TOPIC_PREFIX)) {
-            return;
-        }
         if (!privateMessageSyncRegistry.tryStartSessionSync(userId, sessionId)) {
             return;
         }
@@ -85,15 +72,11 @@ public class PrivateMessageSyncEventListener {
     }
 
     @EventListener
-    private void handelDisconnect(SessionDisconnectEvent event){
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.wrap(event.getMessage());
-
-        String sessionId = accessor.getSessionId();
-        privateMessageSyncRegistry.removeSession(sessionId);
+    public void handelDisconnect(SessionDisconnectEvent event){
+        privateMessageSyncRegistry.removeSession(event.getSessionId());
 
     }
-    private void syncPrivateMessages(String userId) {
+    public void syncPrivateMessages(String userId) {
         List<PublishedChatMessage> publishedChatMessages= messageReceiverService.getMissedPrivateMessages(userId);
         publishedChatMessages.forEach(
                 messageDispatcher::dispatch

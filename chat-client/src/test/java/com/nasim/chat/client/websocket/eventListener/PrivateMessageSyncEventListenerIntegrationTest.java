@@ -6,6 +6,7 @@ import com.nasim.chat.client.socket.listener.IncomingMessageDispatcher;
 import com.nasim.chat.client.websocket.WebSocketConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -94,16 +95,10 @@ public class PrivateMessageSyncEventListenerIntegrationTest {
 
         listener.handleConnected(connectedEvent);
 
-
-        StompHeaderAccessor accessor_sub = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
-        accessor_sub.setSessionId("session-1");
-        accessor_sub.setUser(principal);
-        accessor_sub.setDestination(WebSocketConfig.PRIVATE_TOPIC_PREFIX);
-        Message<byte[]> message1= MessageBuilder.createMessage(new byte[0], accessor_sub.getMessageHeaders());
-
-        SessionSubscribeEvent subscribeEvent =new SessionSubscribeEvent(this, message1, principal);
-
-        listener.handleSubscribe(subscribeEvent);
+        listener.handlePrivateSubscriptionReady(new PrivateSubscriptionReadyEvent(
+                principal.getName(),
+                "session-1"
+        ));
 
         assertThat(registry.status("session-1"))
                 .contains(PrivateMessageSyncStatus.IN_PROGRESS);
