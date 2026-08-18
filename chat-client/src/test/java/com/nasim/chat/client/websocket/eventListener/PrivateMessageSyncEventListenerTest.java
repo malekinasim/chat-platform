@@ -1,107 +1,189 @@
 package com.nasim.chat.client.websocket.eventListener;
 
-
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.socket.listener.IncomingMessageDispatcher;
+import com.nasim.chat.client.websocket.WebSocketConfig;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.security.Principal;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
-public class PrivateMessageSyncEventListenerTest {
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+class PrivateMessageSyncEventListenerTest {
 
-    private PrivateMessageSyncRegistry registry = new PrivateMessageSyncRegistry();
+    @Mock
+    private PrivateMessageSyncRegistry registry;
 
+    @Mock
+    private MessageReceiverService messageReceiverService;
 
-    private MessageReceiverService messageReceiverService = Mockito.mock(MessageReceiverService.class);
+    @Mock
+    private IncomingMessageDispatcher messageDispatcher;
 
-    private IncomingMessageDispatcher messageDispatcher = Mockito.mock(IncomingMessageDispatcher.class);
-
-    private PrivateMessageSyncEventListener listener = new PrivateMessageSyncEventListener(
-            registry, messageReceiverService, messageDispatcher);
+    @InjectMocks
+    private PrivateMessageSyncEventListener listener;
 
     @Test
-    void authenticatedConnectedSessionIsRegisteredAsNotStarted() {
+    void authenticatedConnectedSessionIsRegisteredWithAuthenticatedUserId() {
+        listener.handleConnected(connectedEvent("session-1", () -> "user-1"));
+
+        verify(registry).registerSession("user-1", "session-1");
+        verifyNoInteractions(messageReceiverService, messageDispatcher);
+    }
+
+    @Test
+    void connectedEventsWithIncompleteAuthenticationDataAreIgnored() {
+        listener.handleConnected(connectedEvent(null, () -> "user-1"));
+        listener.handleConnected(connectedEvent("missing-principal", null));
+        listener.handleConnected(connectedEvent("null-name", () -> null));
+        listener.handleConnected(connectedEvent("blank-name", () -> " \t "));
+
+        verifyNoInteractions(registry, messageReceiverService, messageDispatcher);
+    }
+
+    @Test
+    void onlyExactPrivateDestinationCanStartReplay() {
         Principal principal = () -> "user-1";
 
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.create(StompCommand.CONNECTED);
+        listener.handleSubscribe(subscribeEvent("session-1", principal, null));
+        listener.handleSubscribe(subscribeEvent("session-1", principal, "/user/queue"));
+        listener.handleSubscribe(subscribeEvent("session-1", principal,
+                WebSocketConfig.PRIVATE_TOPIC_PREFIX + "/extra"));
+        listener.handleSubscribe(subscribeEvent("session-1", principal,
+                WebSocketConfig.PRIVATE_TOPIC_PREFIX + "-similar"));
+        listener.handleSubscribe(subscribeEvent("session-1", principal,
+                WebSocketConfig.ROOM_TOPIC_PREFIX + "room-1"));
 
-        accessor.setSessionId("session-1");
-        accessor.setUser(principal);
-
-        Message<byte[]> message = MessageBuilder.createMessage(
-                new byte[0],
-                accessor.getMessageHeaders()
-        );
-
-        SessionConnectedEvent event =
-                new SessionConnectedEvent(this, message, principal);
-
-        listener.handleConnected(event);
-        assertThat(registry.status("session-1"))
-                .contains(PrivateMessageSyncStatus.NOT_STARTED);
-
-    }
-    @Test
-    void notAuthenticatedConnectedSessionIsNotRegistered() {
-
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.create(StompCommand.CONNECTED);
-
-        accessor.setSessionId("session-1");
-        Message<byte[]> message = MessageBuilder.createMessage(
-                new byte[0],
-                accessor.getMessageHeaders()
-        );
-
-        SessionConnectedEvent event =
-                new SessionConnectedEvent(this, message, null);
-
-        listener.handleConnected(event);
-        assertThat(registry.status("session-1")).isEmpty();
-
-
+        verifyNoInteractions(registry, messageReceiverService, messageDispatcher);
     }
 
     @Test
-    void authenticatedSubscribedSessionIsRegisteredAsInProgress() {
-        Principal principal = () -> "user-1";
+    void validSubscriptionDoesNotRunUserOperationWhenSessionTransitionFails() {
+        when(registry.tryStartSessionSync("user-1", "session-1")).thenReturn(false);
 
-        StompHeaderAccessor accessor =
-                StompHeaderAccessor.create(StompCommand.CONNECTED);
+        listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
 
-        accessor.setSessionId("session-1");
-        accessor.setUser(principal);
-
-        Message<byte[]> message = MessageBuilder.createMessage(
-                new byte[0],
-                accessor.getMessageHeaders()
-        );
-
-        SessionConnectedEvent connectedEvent =
-                new SessionConnectedEvent(this, message, principal);
-
-        listener.handleConnected(connectedEvent);
-
-
-        SessionSubscribeEvent subscribeEvent =
-                new SessionSubscribeEvent(this, message, principal);
-
-        listener.handleSubscribe(subscribeEvent);
-
-        assertThat(registry.status("session-1"))
-                .contains(PrivateMessageSyncStatus.IN_PROGRESS);
-
+        verify(registry).tryStartSessionSync("user-1", "session-1");
+        verify(registry, never()).runOrJoinUserSync(any(), any());
+        verifyNoInteractions(messageReceiverService, messageDispatcher);
     }
 
+    @Test
+    void validSubscriptionStartsOrJoinsUserOperationAndReplaysEveryMessage() {
+        CompletableFuture<Void> joinedFuture = new CompletableFuture<>();
+        when(registry.tryStartSessionSync("user-1", "session-1")).thenReturn(true);
+        when(registry.runOrJoinUserSync(any(), any())).thenReturn(joinedFuture);
+        PublishedChatMessage first = org.mockito.Mockito.mock(PublishedChatMessage.class);
+        PublishedChatMessage second = org.mockito.Mockito.mock(PublishedChatMessage.class);
+        when(messageReceiverService.getMissedPrivateMessages("user-1"))
+                .thenReturn(List.of(first, second));
+
+        listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Supplier<CompletableFuture<Void>>> operation =
+                ArgumentCaptor.forClass(Supplier.class);
+        verify(registry).runOrJoinUserSync(org.mockito.ArgumentMatchers.eq("user-1"),
+                operation.capture());
+        operation.getValue().get().join();
+
+        verify(messageReceiverService).getMissedPrivateMessages("user-1");
+        verify(messageDispatcher).dispatch(first);
+        verify(messageDispatcher).dispatch(second);
+        verifyNoMoreInteractions(messageReceiverService, messageDispatcher);
+    }
+
+    @Test
+    void successfulCompletionCompletesOnlyParticipatingSession() {
+        CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
+
+        listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
+        verify(registry, never()).completeSessionSync(any());
+
+        joinedFuture.complete(null);
+
+        verify(registry).completeSessionSync("session-1");
+        verify(registry, never()).completeSessionSync("session-2");
+        verify(registry, never()).resetSessionSync(any());
+    }
+
+    @Test
+    void exceptionalCompletionResetsOnlyParticipatingSession() {
+        CompletableFuture<Void> joinedFuture = preparedSuccessfulTransition("session-1");
+
+        listener.handleSubscribe(privateSubscribeEvent("session-1", () -> "user-1"));
+        joinedFuture.completeExceptionally(new IllegalStateException("replay failed"));
+
+        verify(registry).resetSessionSync("session-1");
+        verify(registry, never()).resetSessionSync("session-2");
+        verify(registry, never()).completeSessionSync(any());
+    }
+
+    @Test
+    void disconnectRemovesOnlyDisconnectedSession() {
+        SessionDisconnectEvent event = new SessionDisconnectEvent(
+                this, message(StompCommand.DISCONNECT, "session-1", null, null),
+                "session-1", CloseStatus.NORMAL);
+
+        ReflectionTestUtils.invokeMethod(listener, "handelDisconnect", event);
+
+        verify(registry).removeSession("session-1");
+        verify(registry, never()).removeSession("session-2");
+        verifyNoInteractions(messageReceiverService, messageDispatcher);
+    }
+
+    private CompletableFuture<Void> preparedSuccessfulTransition(String sessionId) {
+        CompletableFuture<Void> joinedFuture = new CompletableFuture<>();
+        when(registry.tryStartSessionSync("user-1", sessionId)).thenReturn(true);
+        when(registry.runOrJoinUserSync(any(), any())).thenReturn(joinedFuture);
+        return joinedFuture;
+    }
+
+    private SessionConnectedEvent connectedEvent(String sessionId, Principal principal) {
+        return new SessionConnectedEvent(
+                this, message(StompCommand.CONNECTED, sessionId, principal, null), principal);
+    }
+
+    private SessionSubscribeEvent privateSubscribeEvent(String sessionId, Principal principal) {
+        return subscribeEvent(sessionId, principal, WebSocketConfig.PRIVATE_TOPIC_PREFIX);
+    }
+
+    private SessionSubscribeEvent subscribeEvent(
+            String sessionId, Principal principal, String destination) {
+        return new SessionSubscribeEvent(
+                this, message(StompCommand.SUBSCRIBE, sessionId, principal, destination), principal);
+    }
+
+    private Message<byte[]> message(
+            StompCommand command, String sessionId, Principal principal, String destination) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
+        accessor.setSessionId(sessionId);
+        accessor.setUser(principal);
+        accessor.setDestination(destination);
+        return MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+    }
 }
