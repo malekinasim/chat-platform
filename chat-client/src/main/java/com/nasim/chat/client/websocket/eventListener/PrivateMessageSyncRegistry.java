@@ -24,7 +24,7 @@ public class PrivateMessageSyncRegistry {
                 PrivateMessageSyncStatus.NOT_STARTED
         );
         return sessionsById.putIfAbsent(
-                Objects.requireNonNull(sessionId, "sessionId must not be null"),
+                Objects.requireNonNull(sessionId, "sessionId must not be nu ll"),
                 entry
         ) == null;
     }

@@ -34,14 +34,16 @@ public class PrivateSubscriptionReadyInterceptor implements ExecutorChannelInter
             return;
         }
         StompHeaderAccessor  accessor=StompHeaderAccessor.wrap(message);
+
+        if (accessor.getMessageType() != SimpMessageType.SUBSCRIBE ) {
+            return;
+        }
+
         String originalDestination =
                 accessor.getFirstNativeHeader(
                         SimpMessageHeaderAccessor.ORIGINAL_DESTINATION
                 );
-        if (accessor.getMessageType() != SimpMessageType.SUBSCRIBE ||
-                !WebSocketConfig.PRIVATE_TOPIC_PREFIX.equals(
-                        originalDestination
-                )) {
+        if (!WebSocketConfig.PRIVATE_TOPIC_PREFIX.equals(originalDestination)) {
             return;
         }
         String sessionId = accessor.getSessionId();
