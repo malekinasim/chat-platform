@@ -1,5 +1,7 @@
 package com.nasim.chat.client.controller;
 
+import com.nasim.chat.client.model.dto.PrivateHistoryResponse;
+import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.security.SecurityUtils;
@@ -12,6 +14,7 @@ import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
 import com.nasim.chat.model.dto.MessageDeliveredCommand;
 import com.nasim.chat.model.dto.SendMessageCommand;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -23,9 +26,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -113,4 +119,43 @@ public class ChatBrowserController {
                 .toList();
     }
 
+    @GetMapping("/api/chat/private/history")
+    public PrivateHistoryResponse getPrivateHistory(
+            Principal principal,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime beforeCreatedAt,
+            @RequestParam(required = false)
+            Long beforeMessageId,
+            @RequestParam(defaultValue = "50")
+            int limit
+    ) {
+        String userId =
+                SecurityUtils.authenticatedUsername(principal);
+
+        if (limit < 1 || limit > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "limit must be between 1 and 100"
+            );
+        }
+
+        return messageService.getPrivateHistory(
+                userId,
+                beforeCreatedAt,
+                beforeMessageId,
+                limit
+        );
+    }
+
+    @GetMapping("/api/chat/private/unread-counts")
+    public List<UnreadMessageCount> getPrivateUnreadCounts(
+            Principal principal
+    ) {
+        String receiverId =
+                SecurityUtils.authenticatedUsername(principal);
+
+        return messageReceiverService
+                .getPrivateUnreadCounts(receiverId);
+    }
 }

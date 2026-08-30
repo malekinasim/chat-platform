@@ -1,6 +1,7 @@
 package com.nasim.chat.client.repository;
 
 import com.nasim.chat.client.model.entity.MessageReceiver;
+import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +25,21 @@ public interface MessageReceiverRepository extends JpaRepository<MessageReceiver
             order by message.createdAt asc, message.id asc
             """)
     List<MessageReceiver> findReplayablePrivateMessages(@Param("receiverId") String receiverId);
+
+
+    @Query("""
+        select new com.nasim.chat.model.dto.UnreadMessageCountDto(
+            message.senderId,
+            count(receiver.id)
+        )
+        from MessageReceiver receiver
+        join receiver.message message
+        where receiver.receiverId = :receiverId
+          and receiver.receiverStatus <>
+              com.nasim.chat.client.model.entity.ReceiverStatus.READ
+          and message.deliveryType =
+              com.nasim.chat.model.dto.DeliveryType.PRIVATE
+        group by message.senderId
+        """)
+    List<UnreadMessageCount> findPrivateUnreadCountsByReceiverId(@Param("receiverId") String receiverId);
 }

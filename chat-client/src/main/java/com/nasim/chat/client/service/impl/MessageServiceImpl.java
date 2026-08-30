@@ -1,13 +1,22 @@
 package com.nasim.chat.client.service.impl;
 
+import com.nasim.chat.client.model.dto.HistoryCursor;
+import com.nasim.chat.client.model.dto.PrivateHistoryResponse;
 import com.nasim.chat.client.model.entity.Message;
+import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageRepository;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
+import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.SendMessageCommand;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.print.Pageable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -36,5 +45,63 @@ public class MessageServiceImpl implements MessageService {
         Message savedMessage = messageRepository.save(message);
         messageReceiverService.saveReceivers(savedMessage,receiver);
         return savedMessage;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PrivateHistoryResponse getPrivateHistory(
+            String userId,
+            LocalDateTime beforeCreatedAt,
+            Long beforeMessageId,
+            int limit
+    ) {
+        if (limit < 1 || limit > 100) {
+            throw new IllegalArgumentException(
+                    "limit must be between 1 and 100"
+            );
+        }
+
+
+        List<Message> result = messageRepository.findPrivateHistory(
+                userId,
+                beforeCreatedAt,
+                beforeMessageId,
+                (Pageable) PageRequest.of(0, limit + 1)
+        );
+
+        boolean hasMore = result.size() > limit;
+
+        List<Message> selectedMessages =
+                new ArrayList<>(
+                        result.subList(
+                                0,
+                                Math.min(limit, result.size())
+                        )
+                );
+
+        HistoryCursor nextCursor = null;
+
+        if (hasMore && !selectedMessages.isEmpty()) {
+            Message oldestMessage =
+                    selectedMessages.get(selectedMessages.size() - 1);
+
+            nextCursor = new HistoryCursor(
+                    oldestMessage.getCreatedAt(),
+                    oldestMessage.getId()
+            );
+        }
+
+        Collections.reverse(selectedMessages);
+
+        List<PublishedChatMessage> messages =
+                selectedMessages.stream()
+                        .map(MessageMapper::toPublishedMessage)
+                        .toList();
+
+        return new PrivateHistoryResponse(
+                messages,
+                nextCursor,
+                hasMore
+        );
     }
 }

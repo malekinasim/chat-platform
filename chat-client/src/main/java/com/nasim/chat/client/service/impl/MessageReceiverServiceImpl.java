@@ -1,5 +1,6 @@
 package com.nasim.chat.client.service.impl;
 
+import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
@@ -84,5 +85,14 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
             receiver.setReceiverStatus(ReceiverStatus.READ);
             receiver.setReadAt(Instant.now());
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnreadMessageCount> getPrivateUnreadCounts(
+            String receiverId
+    ) {
+        return receiverRepository
+                .findPrivateUnreadCountsByReceiverId(receiverId);
     }
 }

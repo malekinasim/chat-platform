@@ -1,5 +1,6 @@
 package com.nasim.chat.client.service;
 
+import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
@@ -29,4 +30,7 @@ public interface MessageReceiverService {
     void markAsDelivered(Long messageId, String receiverId);
 
     void markAsRead(Long aLong, String receiverId);
+    List<UnreadMessageCount> getPrivateUnreadCounts(
+            String receiverId
+    );
 }

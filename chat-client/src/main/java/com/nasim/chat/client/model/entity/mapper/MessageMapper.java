@@ -25,4 +25,19 @@ public class MessageMapper {
                 savedMessage.getSenderId(), receiverId, savedMessage.getTextContent(), null,
                 savedMessage.getId(), savedMessage.getCreatedAt());
     }
+
+    public static PublishedChatMessage toPublishedMessage(
+            Message message
+    ) {
+        return new PublishedChatMessage(
+                message.getDeliveryType(),
+                message.getMessageContentType(),
+                message.getSenderId(),
+                message.getDestinationId(),
+                message.getTextContent(),
+                null,
+                message.getId(),
+                message.getCreatedAt()
+        );
+    }
 }
