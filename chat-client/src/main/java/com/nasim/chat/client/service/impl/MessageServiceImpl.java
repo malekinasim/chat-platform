@@ -12,8 +12,7 @@ import com.nasim.chat.model.dto.SendMessageCommand;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +65,7 @@ public class MessageServiceImpl implements MessageService {
                 userId,
                 beforeCreatedAt,
                 beforeMessageId,
-                (Pageable) PageRequest.of(0, limit + 1)
+                PageRequest.of(0, limit + 1)
         );
 
         boolean hasMore = result.size() > limit;

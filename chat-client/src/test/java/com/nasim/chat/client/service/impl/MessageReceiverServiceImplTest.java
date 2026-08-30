@@ -1,5 +1,6 @@
 package com.nasim.chat.client.service.impl;
 
+import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.repository.MessageReceiverRepository;
@@ -65,5 +66,21 @@ class MessageReceiverServiceImplTest {
 
         assertThat(service.getMissedPrivateMessages("receiver-id")).isEmpty();
         verify(repository).findReplayablePrivateMessages("receiver-id");
+    }
+    @Test
+    void returnsPrivateUnreadCounts() {
+        List<UnreadMessageCount> counts = List.of(
+                new UnreadMessageCount("sender-a", 3L),
+                new UnreadMessageCount("sender-b", 1L)
+        );
+
+        when(repository.findPrivateUnreadCountsByReceiverId("receiver-id"))
+                .thenReturn(counts);
+
+        assertThat(service.getPrivateUnreadCounts("receiver-id"))
+                .containsExactlyElementsOf(counts);
+
+        verify(repository)
+                .findPrivateUnreadCountsByReceiverId("receiver-id");
     }
 }
