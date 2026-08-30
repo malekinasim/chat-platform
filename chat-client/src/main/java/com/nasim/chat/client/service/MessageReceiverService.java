@@ -12,6 +12,7 @@ public interface MessageReceiverService {
 
     void saveReceivers(Message message, List<String> receivers);
 
+    @Deprecated(forRemoval = false)
     List<PublishedChatMessage> getMissedPrivateMessages(String receiverId);
 
     default MessageReceiver createReceiver(

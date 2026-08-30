@@ -80,7 +80,7 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
                         "The message does not belong to this receiver")
                 );
 
-        if (receiver.getReceiverStatus() == ReceiverStatus.DELIVERED) {
+        if (receiver.getReceiverStatus() != ReceiverStatus.READ) {
 
             receiver.setReceiverStatus(ReceiverStatus.READ);
             receiver.setReadAt(Instant.now());
