@@ -28,7 +28,7 @@ public interface MessageReceiverRepository extends JpaRepository<MessageReceiver
 
 
     @Query("""
-        select new com.nasim.chat.model.dto.UnreadMessageCountDto(
+        select new com.nasim.chat.client.model.dto.UnreadMessageCount(
             message.senderId,
             count(receiver.id)
         )
