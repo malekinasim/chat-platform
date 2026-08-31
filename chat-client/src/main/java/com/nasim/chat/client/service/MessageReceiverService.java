@@ -5,7 +5,6 @@ import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
 import com.nasim.chat.model.dto.PublishedChatMessage;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,9 +35,7 @@ public interface MessageReceiverService {
             String receiverId
     );
 
-    List<UnreadMessageCount> getGroupUnreadCounts(
-            String receiverId
-    );
+    List<UnreadMessageCount> getGroupUnreadCounts(String userId);
 
-    List<UnreadMessageCount> getBroadcastUnreadCounts();
+    List<UnreadMessageCount> getBroadcastUnreadCounts(String userId);
 }

@@ -149,6 +149,7 @@ public class ChatBrowserController {
 
     @GetMapping("/api/chat/group/history/{roomCode}")
     public MessageHistoryResponse getGroupHistory(
+            Principal principal,
             @PathVariable(value = "roomCode") String roomCode,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -159,7 +160,8 @@ public class ChatBrowserController {
             int limit
     ) {
 
-
+        String userId =
+                SecurityUtils.authenticatedUsername(principal);
         if (limit < 1 || limit > 100) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -169,6 +171,7 @@ public class ChatBrowserController {
 
         return messageService.getGroupHistory(
                 roomCode,
+                userId,
                 beforeCreatedAt,
                 beforeMessageId,
                 limit
@@ -213,17 +216,18 @@ public class ChatBrowserController {
                 .getPrivateUnreadCounts(receiverId);
     }
 
-    @GetMapping("/api/chat/group/unread-counts/{roomCode}")
-    public List<UnreadMessageCount> getGroupUnreadCounts(
-            @PathVariable(value = "roomCode") String roomCode
-    ) {
-        return messageReceiverService
-                .getGroupUnreadCounts(roomCode);
+    @GetMapping("/api/chat/group/unread-counts")
+    public List<UnreadMessageCount> getGroupUnreadCounts( Principal principal) {
+        String userId =
+                SecurityUtils.authenticatedUsername(principal);
+        return messageReceiverService.getGroupUnreadCounts(userId);
     }
 
 
     @GetMapping("/api/chat/broadcast/unread-counts")
-    public List<UnreadMessageCount> getBroadcastUnreadCounts( ) {
-        return messageReceiverService.getBroadcastUnreadCounts();
+    public List<UnreadMessageCount> getBroadcastUnreadCounts( Principal principal) {
+        String userId =
+                SecurityUtils.authenticatedUsername(principal);
+        return messageReceiverService.getBroadcastUnreadCounts(userId);
     }
 }

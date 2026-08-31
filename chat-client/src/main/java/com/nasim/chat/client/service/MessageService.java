@@ -19,7 +19,7 @@ public interface MessageService {
 
 
     MessageHistoryResponse getGroupHistory(String roomCode,
-                                           LocalDateTime beforeCreatedAt,
+                                           String userId, LocalDateTime beforeCreatedAt,
                                            Long beforeMessageId, int limit);
 
     MessageHistoryResponse getBroadcastHistory(LocalDateTime beforeCreatedAt, Long beforeMessageId, int limit);

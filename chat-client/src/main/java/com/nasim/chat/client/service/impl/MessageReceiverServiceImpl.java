@@ -6,6 +6,8 @@ import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageReceiverRepository;
+import com.nasim.chat.client.service.ChatGroupService;
+import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.model.dto.DeliveryType;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,8 +23,11 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
 
     private final MessageReceiverRepository receiverRepository;
 
-    public MessageReceiverServiceImpl(MessageReceiverRepository receiverRepository) {
+    private final GroupMembershipService groupMembershipService;
+
+    public MessageReceiverServiceImpl(MessageReceiverRepository receiverRepository, GroupMembershipService groupMembershipService) {
         this.receiverRepository = receiverRepository;
+        this.groupMembershipService = groupMembershipService;
     }
     @Override
     public void saveReceivers(Message message, List<String> receivers) {
@@ -99,17 +104,15 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
 
     @Override
     @Transactional(readOnly = true)
-    public List<UnreadMessageCount> getGroupUnreadCounts(
-            String receiverId
-    ) {
-        return receiverRepository
-                .findUnreadCountsByReceiverId(receiverId, DeliveryType.GROUP);
+    public List<UnreadMessageCount> getGroupUnreadCounts(String userId) {
+          return receiverRepository
+                .findUnreadCountsByReceiverId(userId, DeliveryType.GROUP);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UnreadMessageCount> getBroadcastUnreadCounts() {
+    public List<UnreadMessageCount> getBroadcastUnreadCounts(String userId) {
         return receiverRepository
-                .findUnreadCountsByReceiverId(null, DeliveryType.BROADCAST);
+                .findUnreadCountsByReceiverId(userId, DeliveryType.BROADCAST);
     }
 }

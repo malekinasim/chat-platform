@@ -5,6 +5,7 @@ import com.nasim.chat.client.model.dto.MessageHistoryResponse;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageRepository;
+import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
 import com.nasim.chat.model.dto.PublishedChatMessage;
@@ -23,9 +24,11 @@ import java.util.List;
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final MessageReceiverService messageReceiverService;
-    public MessageServiceImpl(MessageRepository messageRepository, MessageReceiverService messageReceiverService) {
+    private final GroupMembershipService groupMembershipService;
+    public MessageServiceImpl(MessageRepository messageRepository, MessageReceiverService messageReceiverService, GroupMembershipService groupMembershipService) {
         this.messageRepository = messageRepository;
         this.messageReceiverService = messageReceiverService;
+        this.groupMembershipService = groupMembershipService;
     }
 
     @Override
@@ -98,8 +101,13 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public MessageHistoryResponse getGroupHistory(String roomCode,
-                                                  LocalDateTime beforeCreatedAt,
+                                                  String userId, LocalDateTime beforeCreatedAt,
                                                   Long beforeMessageId, int limit) {
+
+        if(!groupMembershipService.hasActiveMembership(userId,roomCode))
+            throw new IllegalArgumentException("the user %s is not memer of group %S ".formatted(userId,roomCode));
+
+
         if (limit < 1 || limit > 100) {
             throw new IllegalArgumentException(
                     "limit must be between 1 and 100"
