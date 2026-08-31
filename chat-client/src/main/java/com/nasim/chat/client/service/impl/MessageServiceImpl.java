@@ -121,7 +121,7 @@ public class MessageServiceImpl implements MessageService {
                 roomCode,
                 beforeCreatedAt,
                 beforeMessageId,
-                PageRequest.of(0, limit + 1)
+                PageRequest.of(0, limit )
         );
 
         boolean hasMore = !result.isLast();

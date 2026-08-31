@@ -179,7 +179,7 @@ public class ChatBrowserController {
     }
 
 
-    @GetMapping("/api/chat/broadcast/history/{roomCode}")
+    @GetMapping("/api/chat/broadcast/history")
     public MessageHistoryResponse getBroadcastHistory(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
