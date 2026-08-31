@@ -108,10 +108,8 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
 
     @Override
     @Transactional(readOnly = true)
-    public List<UnreadMessageCount> getBroaadCastUnreadCounts(
-            String receiverId
-    ) {
+    public List<UnreadMessageCount> getBroadcastUnreadCounts() {
         return receiverRepository
-                .findUnreadCountsByReceiverId(receiverId, DeliveryType.BROADCAST);
+                .findUnreadCountsByReceiverId(null, DeliveryType.BROADCAST);
     }
 }

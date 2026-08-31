@@ -1,7 +1,7 @@
 package com.nasim.chat.client.service.impl;
 
 import com.nasim.chat.client.model.dto.HistoryCursor;
-import com.nasim.chat.client.model.dto.PrivateHistoryResponse;
+import com.nasim.chat.client.model.dto.MessageHistoryResponse;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageRepository;
@@ -9,10 +9,11 @@ import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.SendMessageCommand;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,7 +49,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional(readOnly = true)
-    public PrivateHistoryResponse getPrivateHistory(
+    public MessageHistoryResponse getPrivateHistory(
             String userId,
             LocalDateTime beforeCreatedAt,
             Long beforeMessageId,
@@ -61,35 +62,26 @@ public class MessageServiceImpl implements MessageService {
         }
 
 
-        List<Message> result = messageRepository.findPrivateHistory(
+        Page<Message> result = messageRepository.findPrivateHistory(
                 userId,
                 beforeCreatedAt,
                 beforeMessageId,
-                PageRequest.of(0, limit + 1)
+                PageRequest.of(0, limit )
         );
 
-        boolean hasMore = result.size() > limit;
-
-        List<Message> selectedMessages =
-                new ArrayList<>(
-                        result.subList(
-                                0,
-                                Math.min(limit, result.size())
-                        )
-                );
+        boolean hasMore = !result.isLast();
 
         HistoryCursor nextCursor = null;
 
-        if (hasMore && !selectedMessages.isEmpty()) {
-            Message oldestMessage =
-                    selectedMessages.get(selectedMessages.size() - 1);
-
+        if (hasMore && !result.isEmpty()) {
+            Message oldestMessage =result.getContent().get(result.getNumberOfElements() -1);
             nextCursor = new HistoryCursor(
                     oldestMessage.getCreatedAt(),
                     oldestMessage.getId()
             );
         }
-
+        List<Message> selectedMessages =
+                new ArrayList<>(result.getContent());
         Collections.reverse(selectedMessages);
 
         List<PublishedChatMessage> messages =
@@ -97,7 +89,98 @@ public class MessageServiceImpl implements MessageService {
                         .map(MessageMapper::toPublishedMessage)
                         .toList();
 
-        return new PrivateHistoryResponse(
+        return new MessageHistoryResponse(
+                messages,
+                nextCursor,
+                hasMore
+        );
+    }
+
+    @Override
+    public MessageHistoryResponse getGroupHistory(String roomCode,
+                                                  LocalDateTime beforeCreatedAt,
+                                                  Long beforeMessageId, int limit) {
+        if (limit < 1 || limit > 100) {
+            throw new IllegalArgumentException(
+                    "limit must be between 1 and 100"
+            );
+        }
+
+
+        Page<Message> result = messageRepository.findGroupHistory(
+                roomCode,
+                beforeCreatedAt,
+                beforeMessageId,
+                PageRequest.of(0, limit + 1)
+        );
+
+        boolean hasMore = !result.isLast();
+
+        HistoryCursor nextCursor = null;
+
+        if (hasMore && !result.isEmpty()) {
+            Message oldestMessage =
+                    result.getContent().get(result.getNumberOfElements() - 1);
+
+            nextCursor = new HistoryCursor(
+                    oldestMessage.getCreatedAt(),
+                    oldestMessage.getId()
+            );
+        }
+        List<Message> selectedMessages =
+                new ArrayList<>(result.getContent());
+        Collections.reverse(selectedMessages);
+
+        List<PublishedChatMessage> messages =
+                selectedMessages.stream()
+                        .map(MessageMapper::toPublishedMessage)
+                        .toList();
+
+        return new MessageHistoryResponse(
+                messages,
+                nextCursor,
+                hasMore
+        );
+    }
+
+    @Override
+    public MessageHistoryResponse getBroadcastHistory(LocalDateTime beforeCreatedAt, Long beforeMessageId, int limit) {
+        if (limit < 1 || limit > 100) {
+            throw new IllegalArgumentException(
+                    "limit must be between 1 and 100"
+            );
+        }
+
+
+        Page<Message> result = messageRepository.findBroadcastHistory(
+                beforeCreatedAt,
+                beforeMessageId,
+                PageRequest.of(0, limit + 1)
+        );
+
+        boolean hasMore = !result.isLast();
+
+        HistoryCursor nextCursor = null;
+
+        if (hasMore && !result.isEmpty()) {
+            Message oldestMessage =
+                    result.getContent().get(result.getNumberOfElements() - 1);
+
+            nextCursor = new HistoryCursor(
+                    oldestMessage.getCreatedAt(),
+                    oldestMessage.getId()
+            );
+        }
+        List<Message> selectedMessages =
+                new ArrayList<>(result.getContent());
+        Collections.reverse(selectedMessages);
+
+        List<PublishedChatMessage> messages =
+                selectedMessages.stream()
+                        .map(MessageMapper::toPublishedMessage)
+                        .toList();
+
+        return new MessageHistoryResponse(
                 messages,
                 nextCursor,
                 hasMore

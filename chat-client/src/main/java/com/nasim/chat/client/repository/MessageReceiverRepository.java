@@ -29,23 +29,32 @@ public interface MessageReceiverRepository extends JpaRepository<MessageReceiver
 
 
     @Query("""
-
-            select new com.nasim.chat.client.model.dto.UnreadMessageCount(
-            message.senderId,
+        select new com.nasim.chat.client.model.dto.UnreadMessageCount(
+            case
+                when :deliveryType =
+                    com.nasim.chat.model.dto.DeliveryType.GROUP
+                then message.destinationId
+                else message.senderId
+            end,
             count(receiver.id)
         )
         from MessageReceiver receiver
         join receiver.message message
-        where ( (deliveryType==com.nasim.chat.model.dto.DeliveryType.BROADCAST and 
-                 :receiverId is null)   
-                 or receiver.receiverId = :receiverId)
+        where receiver.receiverId = :receiverId
           and receiver.receiverStatus <>
               com.nasim.chat.client.model.entity.ReceiverStatus.READ
           and message.deliveryType = :deliveryType
-        group by message.senderId
+        group by
+            case
+                when :deliveryType =
+                    com.nasim.chat.model.dto.DeliveryType.GROUP
+                then message.destinationId
+                else message.senderId
+            end
         """)
-    List<UnreadMessageCount> findUnreadCountsByReceiverId(@Param("receiverId") String receiverId,
-                                                          @Param("deliveryType") DeliveryType deliveryType);
+    List<UnreadMessageCount> findUnreadCountsByReceiverId(
+            @Param("receiverId") String receiverId,
+            @Param("deliveryType") DeliveryType deliveryType
+    );
     }
-
 

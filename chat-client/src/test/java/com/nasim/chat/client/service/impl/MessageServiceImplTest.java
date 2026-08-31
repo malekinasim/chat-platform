@@ -1,6 +1,6 @@
 package com.nasim.chat.client.service.impl;
 
-import com.nasim.chat.client.model.dto.PrivateHistoryResponse;
+import com.nasim.chat.client.model.dto.MessageHistoryResponse;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.repository.MessageRepository;
 import com.nasim.chat.client.service.MessageReceiverService;
@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
@@ -48,21 +50,26 @@ class MessageServiceImplTest {
                 "oldest-in-page"
         );
 
-        Message extra = message(
-                1L,
-                LocalDateTime.of(2026, 1, 1, 10, 0),
-                "extra"
-        );
-
         when(messageRepository.findPrivateHistory(
                 eq("current"),
                 isNull(),
                 isNull(),
                 any(Pageable.class)
-        )).thenReturn(List.of(newest, oldestInPage, extra));
+        )).thenReturn(
+                new PageImpl<>(
+                        List.of(newest, oldestInPage),
+                        PageRequest.of(0, 2),
+                        3
+                )
+        );
 
-        PrivateHistoryResponse response =
-                service.getPrivateHistory("current", null, null, 2);
+        MessageHistoryResponse response =
+                service.getPrivateHistory(
+                        "current",
+                        null,
+                        null,
+                        2
+                );
 
         assertThat(response.messages())
                 .extracting(message -> message.messageId())
@@ -82,11 +89,10 @@ class MessageServiceImplTest {
                 isNull(),
                 argThat(pageable ->
                         pageable.getPageNumber() == 0
-                                && pageable.getPageSize() == 3
+                                && pageable.getPageSize() == 2
                 )
         );
     }
-
     @Test
     void returnsNoCursorWhenThereIsNoOlderPage() {
         Message onlyMessage = message(
@@ -100,10 +106,21 @@ class MessageServiceImplTest {
                 isNull(),
                 isNull(),
                 any(Pageable.class)
-        )).thenReturn(List.of(onlyMessage));
+        )).thenReturn(
+                new PageImpl<>(
+                        List.of(onlyMessage),
+                        PageRequest.of(0, 2),
+                        1
+                )
+        );
 
-        PrivateHistoryResponse response =
-                service.getPrivateHistory("current", null, null, 2);
+        MessageHistoryResponse response =
+                service.getPrivateHistory(
+                        "current",
+                        null,
+                        null,
+                        2
+                );
 
         assertThat(response.messages())
                 .extracting(message -> message.messageId())
@@ -111,8 +128,17 @@ class MessageServiceImplTest {
 
         assertThat(response.hasMore()).isFalse();
         assertThat(response.nextCursor()).isNull();
-    }
 
+        verify(messageRepository).findPrivateHistory(
+                eq("current"),
+                isNull(),
+                isNull(),
+                argThat(pageable ->
+                        pageable.getPageNumber() == 0
+                                && pageable.getPageSize() == 2
+                )
+        );
+    }
     @Test
     void rejectsInvalidLimit() {
         assertThatThrownBy(

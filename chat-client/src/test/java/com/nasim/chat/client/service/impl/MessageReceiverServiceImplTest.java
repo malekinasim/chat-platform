@@ -74,13 +74,13 @@ class MessageReceiverServiceImplTest {
                 new UnreadMessageCount("sender-b", 1L)
         );
 
-        when(repository.findPrivateUnreadCountsByReceiverId("receiver-id"))
+        when(repository.findUnreadCountsByReceiverId("receiver-id",DeliveryType.PRIVATE))
                 .thenReturn(counts);
 
         assertThat(service.getPrivateUnreadCounts("receiver-id"))
                 .containsExactlyElementsOf(counts);
 
         verify(repository)
-                .findPrivateUnreadCountsByReceiverId("receiver-id");
+                .findUnreadCountsByReceiverId("receiver-id",DeliveryType.PRIVATE);
     }
 }

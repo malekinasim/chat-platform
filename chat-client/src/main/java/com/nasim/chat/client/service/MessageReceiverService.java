@@ -36,13 +36,9 @@ public interface MessageReceiverService {
             String receiverId
     );
 
-    @Transactional(readOnly = true)
     List<UnreadMessageCount> getGroupUnreadCounts(
             String receiverId
     );
 
-    @Transactional(readOnly = true)
-    List<UnreadMessageCount> getBroaadCastUnreadCounts(
-            String receiverId
-    );
+    List<UnreadMessageCount> getBroadcastUnreadCounts();
 }

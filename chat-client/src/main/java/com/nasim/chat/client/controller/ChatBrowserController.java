@@ -1,6 +1,6 @@
 package com.nasim.chat.client.controller;
 
-import com.nasim.chat.client.model.dto.PrivateHistoryResponse;
+import com.nasim.chat.client.model.dto.MessageHistoryResponse;
 import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
@@ -24,12 +24,11 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -120,7 +119,7 @@ public class ChatBrowserController {
     }
 
     @GetMapping("/api/chat/private/history")
-    public PrivateHistoryResponse getPrivateHistory(
+    public MessageHistoryResponse getPrivateHistory(
             Principal principal,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -148,6 +147,61 @@ public class ChatBrowserController {
         );
     }
 
+    @GetMapping("/api/chat/group/history/{roomCode}")
+    public MessageHistoryResponse getGroupHistory(
+            @PathVariable(value = "roomCode") String roomCode,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime beforeCreatedAt,
+            @RequestParam(required = false)
+            Long beforeMessageId,
+            @RequestParam(defaultValue = "50")
+            int limit
+    ) {
+
+
+        if (limit < 1 || limit > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "limit must be between 1 and 100"
+            );
+        }
+
+        return messageService.getGroupHistory(
+                roomCode,
+                beforeCreatedAt,
+                beforeMessageId,
+                limit
+        );
+    }
+
+
+    @GetMapping("/api/chat/broadcast/history/{roomCode}")
+    public MessageHistoryResponse getBroadcastHistory(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime beforeCreatedAt,
+            @RequestParam(required = false)
+            Long beforeMessageId,
+            @RequestParam(defaultValue = "50")
+            int limit
+    ) {
+
+
+        if (limit < 1 || limit > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "limit must be between 1 and 100"
+            );
+        }
+
+        return messageService.getBroadcastHistory(
+                beforeCreatedAt,
+                beforeMessageId,
+                limit
+        );
+    }
+
     @GetMapping("/api/chat/private/unread-counts")
     public List<UnreadMessageCount> getPrivateUnreadCounts(
             Principal principal
@@ -157,5 +211,19 @@ public class ChatBrowserController {
 
         return messageReceiverService
                 .getPrivateUnreadCounts(receiverId);
+    }
+
+    @GetMapping("/api/chat/group/unread-counts/{roomCode}")
+    public List<UnreadMessageCount> getGroupUnreadCounts(
+            @PathVariable(value = "roomCode") String roomCode
+    ) {
+        return messageReceiverService
+                .getGroupUnreadCounts(roomCode);
+    }
+
+
+    @GetMapping("/api/chat/broadcast/unread-counts")
+    public List<UnreadMessageCount> getBroadcastUnreadCounts( ) {
+        return messageReceiverService.getBroadcastUnreadCounts();
     }
 }

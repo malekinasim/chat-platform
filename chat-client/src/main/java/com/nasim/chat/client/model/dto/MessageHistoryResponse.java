@@ -3,7 +3,7 @@ import com.nasim.chat.model.dto.PublishedChatMessage;
 
 import java.util.List;
 
-public record PrivateHistoryResponse(
+public record MessageHistoryResponse(
         List<PublishedChatMessage> messages,
         HistoryCursor nextCursor,
         boolean hasMore
