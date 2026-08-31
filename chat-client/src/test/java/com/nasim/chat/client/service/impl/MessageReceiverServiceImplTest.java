@@ -4,6 +4,7 @@ import com.nasim.chat.client.model.dto.UnreadMessageCount;
 import com.nasim.chat.client.model.entity.Message;
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.repository.MessageReceiverRepository;
+import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.model.dto.DeliveryType;
 import com.nasim.chat.model.dto.MessageContentType;
 import com.nasim.chat.model.dto.PublishedChatMessage;
@@ -25,6 +26,9 @@ class MessageReceiverServiceImplTest {
 
     @Mock
     private MessageReceiverRepository repository;
+
+    @Mock
+    private GroupMembershipService groupMembershipService;
 
     @InjectMocks
     private MessageReceiverServiceImpl service;
@@ -82,5 +86,42 @@ class MessageReceiverServiceImplTest {
 
         verify(repository)
                 .findUnreadCountsByReceiverId("receiver-id",DeliveryType.PRIVATE);
+    }
+
+    @Test
+    void returnsGroupUnreadCountsForAuthenticatedUser() {
+        List<UnreadMessageCount> counts = List.of(
+                new UnreadMessageCount("room-a", 3L),
+                new UnreadMessageCount("room-b", 1L)
+        );
+
+        when(repository.findUnreadCountsByReceiverId(
+                "receiver-id", DeliveryType.GROUP
+        )).thenReturn(counts);
+
+        assertThat(service.getGroupUnreadCounts("receiver-id"))
+                .containsExactlyElementsOf(counts);
+
+        verify(repository).findUnreadCountsByReceiverId(
+                "receiver-id", DeliveryType.GROUP
+        );
+    }
+
+    @Test
+    void returnsBroadcastUnreadCountsForAuthenticatedUser() {
+        List<UnreadMessageCount> counts = List.of(
+                new UnreadMessageCount("sender-a", 2L)
+        );
+
+        when(repository.findUnreadCountsByReceiverId(
+                "receiver-id", DeliveryType.BROADCAST
+        )).thenReturn(counts);
+
+        assertThat(service.getBroadcastUnreadCounts("receiver-id"))
+                .containsExactlyElementsOf(counts);
+
+        verify(repository).findUnreadCountsByReceiverId(
+                "receiver-id", DeliveryType.BROADCAST
+        );
     }
 }
