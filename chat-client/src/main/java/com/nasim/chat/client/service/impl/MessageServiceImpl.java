@@ -12,6 +12,7 @@ import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.SendMessageCommand;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,12 +101,13 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MessageHistoryResponse getGroupHistory(String roomCode,
                                                   String userId, LocalDateTime beforeCreatedAt,
                                                   Long beforeMessageId, int limit) {
 
         if(!groupMembershipService.hasActiveMembership(userId,roomCode))
-            throw new IllegalArgumentException("the user %s is not memer of group %S ".formatted(userId,roomCode));
+            throw new AccessDeniedException( "User does not have access to this group");
 
 
         if (limit < 1 || limit > 100) {
@@ -152,6 +154,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MessageHistoryResponse getBroadcastHistory(LocalDateTime beforeCreatedAt, Long beforeMessageId, int limit) {
         if (limit < 1 || limit > 100) {
             throw new IllegalArgumentException(
@@ -163,7 +166,7 @@ public class MessageServiceImpl implements MessageService {
         Page<Message> result = messageRepository.findBroadcastHistory(
                 beforeCreatedAt,
                 beforeMessageId,
-                PageRequest.of(0, limit + 1)
+                PageRequest.of(0, limit )
         );
 
         boolean hasMore = !result.isLast();
