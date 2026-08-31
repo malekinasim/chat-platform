@@ -6,6 +6,7 @@ import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.entity.ReceiverStatus;
 import com.nasim.chat.client.model.entity.mapper.MessageMapper;
 import com.nasim.chat.client.repository.MessageReceiverRepository;
+import com.nasim.chat.model.dto.DeliveryType;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,24 @@ public class MessageReceiverServiceImpl implements com.nasim.chat.client.service
             String receiverId
     ) {
         return receiverRepository
-                .findPrivateUnreadCountsByReceiverId(receiverId);
+                .findUnreadCountsByReceiverId(receiverId, DeliveryType.PRIVATE);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnreadMessageCount> getGroupUnreadCounts(
+            String receiverId
+    ) {
+        return receiverRepository
+                .findUnreadCountsByReceiverId(receiverId, DeliveryType.GROUP);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UnreadMessageCount> getBroaadCastUnreadCounts(
+            String receiverId
+    ) {
+        return receiverRepository
+                .findUnreadCountsByReceiverId(receiverId, DeliveryType.BROADCAST);
     }
 }

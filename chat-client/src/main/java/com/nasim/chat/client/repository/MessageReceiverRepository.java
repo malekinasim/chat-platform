@@ -2,6 +2,7 @@ package com.nasim.chat.client.repository;
 
 import com.nasim.chat.client.model.entity.MessageReceiver;
 import com.nasim.chat.client.model.dto.UnreadMessageCount;
+import com.nasim.chat.model.dto.DeliveryType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,18 +29,23 @@ public interface MessageReceiverRepository extends JpaRepository<MessageReceiver
 
 
     @Query("""
-        select new com.nasim.chat.client.model.dto.UnreadMessageCount(
+
+            select new com.nasim.chat.client.model.dto.UnreadMessageCount(
             message.senderId,
             count(receiver.id)
         )
         from MessageReceiver receiver
         join receiver.message message
-        where receiver.receiverId = :receiverId
+        where ( (deliveryType==com.nasim.chat.model.dto.DeliveryType.BROADCAST and 
+                 :receiverId is null)   
+                 or receiver.receiverId = :receiverId)
           and receiver.receiverStatus <>
               com.nasim.chat.client.model.entity.ReceiverStatus.READ
-          and message.deliveryType =
-              com.nasim.chat.model.dto.DeliveryType.PRIVATE
+          and message.deliveryType = :deliveryType
         group by message.senderId
         """)
-    List<UnreadMessageCount> findPrivateUnreadCountsByReceiverId(@Param("receiverId") String receiverId);
-}
+    List<UnreadMessageCount> findUnreadCountsByReceiverId(@Param("receiverId") String receiverId,
+                                                          @Param("deliveryType") DeliveryType deliveryType);
+    }
+
+
