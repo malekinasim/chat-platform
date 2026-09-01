@@ -1,5 +1,7 @@
 package com.nasim.chat.client.websocket.eventListener;
 
+import com.nasim.chat.client.storages.RoomPresenceStore;
+import com.nasim.chat.client.storages.impl.InMemoryRoomPresenceStore;
 import com.nasim.chat.client.websocket.WebSocketConfig;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -16,13 +18,12 @@ public class RoomPresenceEventListener {
 
 
 
-    private final RoomPresenceRegistry presenceRegistry;
+    private final RoomPresenceStore presenceRegistry;
 
-    public RoomPresenceEventListener(
-            RoomPresenceRegistry presenceRegistry
-    ) {
+    public RoomPresenceEventListener(RoomPresenceStore presenceRegistry) {
         this.presenceRegistry = presenceRegistry;
     }
+
 
     @EventListener
     public void handleSubscribe(SessionSubscribeEvent event) {
@@ -54,8 +55,8 @@ public class RoomPresenceEventListener {
         String userId = principal != null
                 ? principal.getName()
                 : sessionId;
-        presenceRegistry.addSubscription(roomCode, sessionId, subscriptionId, userId);
-        System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.getPresentUsers(roomCode));
+        presenceRegistry.subscribe(roomCode, sessionId, subscriptionId, userId);
+        System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.onlineUsers(roomCode));
 
     }
 
@@ -69,18 +70,20 @@ public class RoomPresenceEventListener {
         if (sessionId == null || subscriptionId == null) {
             return;
         }
-        presenceRegistry.removeSubscription(sessionId, subscriptionId)
+        presenceRegistry.unsubscribe(sessionId, subscriptionId)
                 .ifPresent(roomCode ->
-                        System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.getPresentUsers(roomCode)));
+                        System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.onlineUsers(roomCode)));
 
     }
 
     @EventListener
     public void handleDisconnect(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor =
+                StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = event.getSessionId();
-        Set<String> affectedRooms = presenceRegistry.removeSession(sessionId);
+        Set<String> affectedRooms = presenceRegistry.disconnect(sessionId);
         for (String roomCode : affectedRooms) {
-            System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.getPresentUsers(roomCode));
+            System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.onlineUsers(roomCode));
         }
     }
 }

@@ -34,3 +34,4 @@ spring:
     properties:
       hibernate:
         format_sql: true
+redis-presence: false

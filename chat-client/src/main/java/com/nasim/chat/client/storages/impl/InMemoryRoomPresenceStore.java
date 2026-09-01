@@ -1,39 +1,44 @@
-package com.nasim.chat.client.websocket.eventListener;
+package com.nasim.chat.client.storages.impl;
 
+import com.nasim.chat.client.storages.RoomPresenceStore;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
-public class RoomPresenceRegistry {
+@Profile("!redis-presence")
+public class InMemoryRoomPresenceStore implements RoomPresenceStore {
 
     private final Map<SubscriptionKey, PresenceEntry> subscriptions =
             new ConcurrentHashMap<>();
 
-    public void addSubscription(
-            String roomCode,
+    @Override
+    public void subscribe(
             String sessionId,
             String subscriptionId,
-            String userId
+            String userId,
+            String roomCode
     ) {
         SubscriptionKey key = new SubscriptionKey(sessionId, subscriptionId);
         PresenceEntry entry = new PresenceEntry(roomCode, userId);
         subscriptions.put(key, entry);
 
     }
-
-    public Optional<String> removeSubscription(
+    @Override
+    public Optional<String> unsubscribe(
             String sessionId,
             String subscriptionId
-    ) {
+    ){
         SubscriptionKey key = new SubscriptionKey(sessionId, subscriptionId);
         PresenceEntry removedEntry = subscriptions.remove(key);
         if (removedEntry == null) return Optional.empty();
         return Optional.of(removedEntry.roomCode);
     }
-
-    public Set<String> removeSession(String sessionId) {
+    @Override
+    public Set<String> disconnect(String sessionId) {
         Set<String> affectedRooms = new HashSet<>();
         subscriptions.forEach((key, entry) -> {
             if (key.sessionId.equals(sessionId)) {
@@ -44,15 +49,16 @@ public class RoomPresenceRegistry {
         });
         return affectedRooms;
     }
-
-    public List<String> getPresentUsers(String roomCode) {
+    @Override
+    public Set<String> onlineUsers (String roomCode) {
         return subscriptions.values().stream().filter(
                 presenceEntry -> presenceEntry.roomCode.equals(roomCode)
-        ).map(PresenceEntry::userId).distinct().toList();
+        ).map(PresenceEntry::userId).distinct().collect(Collectors.toSet());
     }
+    @Override
+    public int onlineUserCount(String roomCode) {
 
-    public int getPresenceCount(String roomCode) {
-       return this.getPresentUsers(roomCode).size();
+        return this.onlineUsers(roomCode).size();
     }
 
     private record SubscriptionKey(
