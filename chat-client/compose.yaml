@@ -26,11 +26,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-    environment:
-      REDIS_HOST: chat-presence-redis
-      REDIS_PORT: 6379
-      SPRING_PROFILES_ACTIVE: redis-presence
-
   chat-client:
     build:
       context: ..
@@ -45,7 +40,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://chat-client-database:5432/${CHAT_CLIENT_POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${CHAT_CLIENT_POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${CHAT_CLIENT_POSTGRES_PASSWORD}
-
+      REDIS_HOST: chat-presence-redis
+      REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: redis-presence
       SECURITY_JWT_PUBLIC_KEY_FILE: file:/dev-keys/public.pem
       SECURITY_JWT_ISSUER: http://auth-service:8083
       SECURITY_JWT_AUDIENCE: chat-client

@@ -55,7 +55,8 @@ public class RoomPresenceEventListener {
         String userId = principal != null
                 ? principal.getName()
                 : sessionId;
-        presenceRegistry.subscribe(roomCode, sessionId, subscriptionId, userId);
+        presenceRegistry.subscribe( sessionId, subscriptionId, userId,roomCode);
+
         System.out.printf("Present in room %s: %s%n", roomCode, presenceRegistry.onlineUsers(roomCode));
 
     }
