@@ -53,7 +53,7 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore {
     public Set<String> onlineUsers (String roomCode) {
         return subscriptions.values().stream().filter(
                 presenceEntry -> presenceEntry.roomCode.equals(roomCode)
-        ).map(PresenceEntry::userId).distinct().collect(Collectors.toSet());
+        ).map(PresenceEntry::userId).collect(Collectors.toSet());
     }
     @Override
     public int onlineUserCount(String roomCode) {
