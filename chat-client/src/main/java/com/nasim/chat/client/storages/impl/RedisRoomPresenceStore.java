@@ -3,8 +3,8 @@ package com.nasim.chat.client.storages.impl;
 import com.nasim.chat.client.storages.RoomPresenceStore;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,22 +16,82 @@ public class RedisRoomPresenceStore
     private static final String ROOM_KEY_PREFIX = "presence:room:";
     private static final String SESSION_KEY_PREFIX = "presence:session:";
     private final StringRedisTemplate redisTemplate;
+    private static final RedisScript<Long> SUBSCRIBE_SCRIPT =
+            RedisScript.of(
+                    """
+                    redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
+                    redis.call('HSET', KEYS[2], ARGV[3], ARGV[4])
+                    return 1
+                    """,
+                    Long.class
+            );
 
+    private static final RedisScript<List> DISCONNECT_PRESENCE_SCRIPT =
+            RedisScript.of(
+                    """
+                    local subscriptions =
+                        redis.call('HGETALL', KEYS[1])
+    
+                    local affectedRooms = {}
+    
+                    for index = 1, #subscriptions, 2 do
+                        local subscriptionId = subscriptions[index]
+                        local roomCode = subscriptions[index + 1]
+    
+                        local roomKey =
+                            ARGV[1] .. roomCode
+    
+                        local connectionField =
+                            ARGV[2] .. ':' .. subscriptionId
+    
+                        redis.call(
+                            'HDEL',
+                            roomKey,
+                            connectionField
+                        )
+    
+                        affectedRooms[#affectedRooms + 1] =
+                            roomCode
+                    end
+    
+                    redis.call('DEL', KEYS[1])
+    
+                    return affectedRooms
+                    """,
+                    List.class
+            );
+
+    private static final RedisScript<String> UNSUBSCRIBE_SCRIPT =
+            RedisScript.of(
+                    """
+                    local roomCode =
+                        redis.call('HGET', KEYS[1], ARGV[1])
+    
+                    if not roomCode then
+                        return nil
+                    end
+    
+                    local roomKey = ARGV[2] .. roomCode
+    
+                    redis.call('HDEL', roomKey, ARGV[3])
+                    redis.call('HDEL', KEYS[1], ARGV[1])
+    
+                    return roomCode
+                    """,
+                    String.class
+            );
     public RedisRoomPresenceStore(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     @Override
     public void subscribe(String sessionId, String subscriptionId, String userId, String roomCode) {
-        //add room online user
-        redisTemplate.opsForHash().put(
-                this.getRoomKey(roomCode),
-        this.getConnectionField(sessionId,subscriptionId),
-                userId
-        );
-        //add session subscriptions online room
-        redisTemplate.opsForHash().put(
-                this.getSessionKey(sessionId),
+
+        redisTemplate.execute(
+                SUBSCRIBE_SCRIPT,
+                List.of( this.getRoomKey(roomCode), this.getSessionKey(sessionId)),
+                this.getConnectionField(sessionId,subscriptionId),
+                userId,
                 subscriptionId,
                 roomCode
         );
@@ -39,32 +99,27 @@ public class RedisRoomPresenceStore
 
     @Override
     public Optional<String> unsubscribe(String sessionId, String subscriptionId) {
-        Object roomCode=redisTemplate.opsForHash().get(
-                this.getSessionKey(sessionId),
-                subscriptionId
+        String roomCode = redisTemplate.execute(
+                UNSUBSCRIBE_SCRIPT,
+                List.of(getSessionKey(sessionId)),
+                subscriptionId,
+                ROOM_KEY_PREFIX,
+                getConnectionField(sessionId, subscriptionId)
         );
-        if(roomCode==null || !StringUtils.hasText(roomCode.toString()))
-            return Optional.empty();
 
-        this.deletePresence(roomCode.toString(),sessionId,subscriptionId);
-
-        return Optional.of(roomCode.toString());
+        return Optional.ofNullable(roomCode);
     }
 
     @Override
     public Set<String> disconnect(String sessionId) {
-        Map<Object, Object> entries=redisTemplate.opsForHash().entries(
-                this.getSessionKey(sessionId)
-        );
-        Set<String > affectedRoomCodes=new HashSet<>();
-       for(Map.Entry<Object,Object> entry:entries.entrySet()){
-           Object subscriptionId=entry.getKey().toString();
-           Object roomCode=entry.getValue().toString();
 
-           this.deletePresence(roomCode.toString(),sessionId,subscriptionId.toString());
-           affectedRoomCodes.add(roomCode.toString());
-       }
-      return  affectedRoomCodes;
+        List<?> affectedRoomCodes = redisTemplate.execute(
+                DISCONNECT_PRESENCE_SCRIPT,
+                List.of(getSessionKey(sessionId)),
+                ROOM_KEY_PREFIX,
+                sessionId
+        );
+      return  affectedRoomCodes.stream().map(String::valueOf).collect(Collectors.toSet());
     }
 
     @Override
@@ -88,18 +143,6 @@ public class RedisRoomPresenceStore
 
     private String getConnectionField(String sessionId,String subscriptionId){
         return sessionId+":"+subscriptionId;
-    }
-
-    private void deletePresence(String roomCode,String sessionId,String subscriptionId){
-        redisTemplate.opsForHash().delete(
-                this.getRoomKey(roomCode),
-                this.getConnectionField(sessionId,subscriptionId)
-        );
-
-        redisTemplate.opsForHash().delete(
-                this.getSessionKey(sessionId),
-                subscriptionId
-        );
     }
 
 
