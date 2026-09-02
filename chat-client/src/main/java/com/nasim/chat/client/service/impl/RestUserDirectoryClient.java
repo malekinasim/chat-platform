@@ -19,13 +19,16 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
 
     @Override
     public List<String> findAllActiveUserIds(String accessToken) {
-        return userServiceClient.get()
+        List<String> response= userServiceClient.get()
                 .uri("/internal/users/active/ids")
                 .headers(headers ->
                         headers.setBearerAuth(accessToken)
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
+
+
+        return response == null ? List.of() : response;
     }
 
     @Override

@@ -3,9 +3,12 @@ package com.nasim.chat.client.websocket;
 import com.nasim.chat.client.websocket.channelInterceptor.OutboundMessageInterceptor;
 import com.nasim.chat.client.websocket.channelInterceptor.RoomSubscriptionAuthorizationInterceptor;
 import com.nasim.chat.client.websocket.channelInterceptor.StompAuthenticationChannelInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -18,12 +21,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
     private final StompAuthenticationChannelInterceptor authenticationInterceptor;
     private final RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor;
     private final OutboundMessageInterceptor outboundMessageInterceptor;
+    private TaskScheduler messageBrokerTaskScheduler;
     public WebSocketConfig(StompAuthenticationChannelInterceptor authenticationInterceptor, RoomSubscriptionAuthorizationInterceptor roomSubscriptionAuthorizationInterceptor, OutboundMessageInterceptor outboundMessageInterceptor) {
         this.authenticationInterceptor = authenticationInterceptor;
         this.roomSubscriptionAuthorizationInterceptor = roomSubscriptionAuthorizationInterceptor;
         this.outboundMessageInterceptor = outboundMessageInterceptor;
     }
-
+    @Autowired
+    public void setMessageBrokerTaskScheduler(
+            @Lazy TaskScheduler taskScheduler
+    ) {
+        this.messageBrokerTaskScheduler = taskScheduler;
+    }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/chat")
@@ -33,7 +42,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer  {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/app")
-                .enableSimpleBroker("/topic", "/queue");
+                .enableSimpleBroker("/topic", "/queue")
+                .setHeartbeatValue(new long[]{10_000, 10_000})
+                .setTaskScheduler(messageBrokerTaskScheduler);
     }
 
     @Override

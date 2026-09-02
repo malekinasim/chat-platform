@@ -26,6 +26,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "127.0.0.1:5540:5540"
+    volumes:
+      - redis-insight-data:/data
+    depends_on:
+      chat-presence-redis:
+        condition: service_healthy
   chat-client:
     build:
       context: ..
@@ -61,3 +71,4 @@ services:
 
 volumes:
   chat-client-database-data:
+  redis-insight-data:

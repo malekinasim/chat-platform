@@ -3,6 +3,7 @@ package com.nasim.chat.client.websocket.channelInterceptor;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -11,13 +12,14 @@ import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-
+@Component
 public class OutboundMessageInterceptor implements ChannelInterceptor {
     private final MessageReceiverService messageReceiverService;
     private final SimpUserRegistry userRegistry;
-    public OutboundMessageInterceptor(MessageReceiverService messageReceiverService, SimpUserRegistry userRegistry) {
+    public OutboundMessageInterceptor(MessageReceiverService messageReceiverService,@Lazy SimpUserRegistry userRegistry) {
         this.messageReceiverService = messageReceiverService;
         this.userRegistry = userRegistry;
     }

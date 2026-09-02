@@ -28,6 +28,9 @@ public class GroupReceiverResolver implements ReceiverResolver {
         List<String> memberIds=  groupMembershipService.findMemberIdsByGroupCode(command.room()).stream()
                 .filter(memberId -> !memberId.equals(command.sender()))
                 .toList();
+        if (memberIds.isEmpty()) {
+            return List.of();
+        }
         String accessToken =
                 authentication.getToken().getTokenValue();
         return userDirectoryClient.findAllValidMembers(memberIds,accessToken);
