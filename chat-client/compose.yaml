@@ -16,6 +16,21 @@ services:
       timeout: 5s
       retries: 10
 
+  chat-presence-redis:
+    image: redis:7-alpine
+    container_name: chat-presence-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    environment:
+      REDIS_HOST: chat-presence-redis
+      REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: redis-presence
+
   chat-client:
     build:
       context: ..
@@ -44,6 +59,8 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
+      chat-presence-redis:
+        condition: service_healthy
 
 volumes:
   chat-client-database-data:
