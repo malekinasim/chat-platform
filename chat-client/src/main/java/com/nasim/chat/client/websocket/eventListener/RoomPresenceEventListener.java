@@ -3,6 +3,8 @@ package com.nasim.chat.client.websocket.eventListener;
 import com.nasim.chat.client.storages.RoomPresenceStore;
 import com.nasim.chat.client.websocket.WebSocketConfig;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -81,6 +83,7 @@ public class RoomPresenceEventListener {
     }
 
     @EventListener
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     public void handleDisconnect(SessionDisconnectEvent event) {
         roomPresenceStore.disconnect(
                 event.getSessionId()
