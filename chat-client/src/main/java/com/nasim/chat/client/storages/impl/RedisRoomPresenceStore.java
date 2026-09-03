@@ -42,8 +42,6 @@ public class RedisRoomPresenceStore implements RoomPresenceStore {
                     local roomKey =  ARGV[2] .. roomCode
                     redis.call( 'HDEL',  roomKey, ARGV[3])
                     redis.call(  'HDEL', KEYS[1], ARGV[1])
-                  
-                
                     return roomCode
                     """,
                     String.class

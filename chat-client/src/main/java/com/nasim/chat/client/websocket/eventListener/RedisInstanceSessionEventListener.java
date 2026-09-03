@@ -1,7 +1,6 @@
 package com.nasim.chat.client.websocket.eventListener;
 
 import com.nasim.chat.client.storages.InstanceSessionStore;
-import com.nasim.chat.client.storages.RoomPresenceStore;
 import com.nasim.chat.client.storages.impl.PresenceInstanceIdentity;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
