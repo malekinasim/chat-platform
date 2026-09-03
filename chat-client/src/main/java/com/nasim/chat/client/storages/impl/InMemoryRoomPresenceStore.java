@@ -72,4 +72,11 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore {
             String userId
     ) {
     }
+    @Override
+    public Set<String> cleanupSession(
+            String ownerInstanceId,
+            String sessionId
+    ) {
+        return disconnect(sessionId);
+    }
 }

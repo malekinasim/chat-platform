@@ -22,4 +22,9 @@ public interface RoomPresenceStore {
     Set<String> onlineUsers(String roomCode);
 
     int onlineUserCount(String roomCode);
+
+    Set<String> cleanupSession(
+            String ownerInstanceId,
+            String sessionId
+    );
 }
