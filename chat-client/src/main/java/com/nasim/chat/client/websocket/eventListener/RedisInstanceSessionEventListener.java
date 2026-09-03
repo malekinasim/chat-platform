@@ -17,12 +17,10 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class RedisInstanceSessionEventListener {
 
     private final InstanceSessionStore instanceSessionStore;
-    private final RoomPresenceStore roomPresenceStore;
     private final PresenceInstanceIdentity identity;
 
-    public RedisInstanceSessionEventListener(InstanceSessionStore instanceSessionStore, RoomPresenceStore roomPresenceStore, PresenceInstanceIdentity identity) {
+    public RedisInstanceSessionEventListener(InstanceSessionStore instanceSessionStore, PresenceInstanceIdentity identity) {
         this.instanceSessionStore = instanceSessionStore;
-        this.roomPresenceStore = roomPresenceStore;
         this.identity = identity;
     }
     @EventListener
@@ -30,7 +28,8 @@ public class RedisInstanceSessionEventListener {
     public void handleDisconnect(
             SessionDisconnectEvent event
     ) {
-        roomPresenceStore.disconnect(
+        instanceSessionStore.removeSession(
+                identity.getInstanceId(),
                 event.getSessionId()
         );
     }
