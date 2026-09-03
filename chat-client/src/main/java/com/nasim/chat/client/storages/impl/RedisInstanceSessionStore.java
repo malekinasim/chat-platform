@@ -27,7 +27,7 @@ public class RedisInstanceSessionStore
 
     @Override
     public void addSession(String instanceId, String sessionId) {
-        redisTemplate.opsForValue().set(
+        redisTemplate.opsForSet().add(
                 getSessionsKey(instanceId),
                 sessionId
         );
