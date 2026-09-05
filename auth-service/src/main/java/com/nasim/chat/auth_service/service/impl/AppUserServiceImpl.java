@@ -2,6 +2,7 @@ package com.nasim.chat.auth_service.service.impl;
 
 import com.nasim.chat.auth_service.exceptions.CustomException;
 import com.nasim.chat.auth_service.model.dto.PendingRegistration;
+import com.nasim.chat.auth_service.model.dto.GeneralUserDetails;
 import com.nasim.chat.auth_service.model.entity.AppUser;
 import com.nasim.chat.auth_service.model.entity.Role;
 import com.nasim.chat.auth_service.model.entity.UserIdentity;
@@ -13,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AppUserServiceImpl implements AppUserService {
@@ -73,6 +76,25 @@ public class AppUserServiceImpl implements AppUserService {
     public List<String> findAllActiveIdsById(List<Long> ids) {
         return appUserRepository.findAllByIdInAndActiveTrue(ids).stream()
                 .map(appUser -> appUser.getId().toString()).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GeneralUserDetails> findUserDetails(List<Long> ids) {
+        return appUserRepository.findAllByIdInAndActiveTrue(ids).stream()
+                .map(user -> new GeneralUserDetails(
+                        user.getId().toString(),
+                        user.getDisplayName(),
+                        user.getAvatarUrl(),
+                        user.getEmail(),
+                        user.getPhoneNumber(),
+                        user.getPhoneVerifiedAt(),
+                        user.getRoles().stream()
+                                .map(Role::getName)
+                                .sorted()
+                                .collect(Collectors.toCollection(LinkedHashSet::new))
+                ))
+                .toList();
     }
 
     @Override

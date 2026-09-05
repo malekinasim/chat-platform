@@ -1,8 +1,10 @@
 package com.nasim.chat.auth_service.controller;
 
-import com.nasim.chat.auth_service.model.entity.AppUser;
+import com.nasim.chat.auth_service.model.dto.GeneralUserDetails;
 import com.nasim.chat.auth_service.service.AppUserService;
-import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +26,13 @@ public class InternalUserController {
     @PostMapping("/active/ids/filter")
     public List<String> findAllValidUserIds(@RequestBody List<Long> ids) {
         return appUserService.findAllActiveIdsById(ids);
+    }
+
+    @PostMapping("/details")
+    public List<GeneralUserDetails> findUserDetails(
+            @RequestBody @Valid @NotEmpty List<@Positive Long> ids
+    ) {
+        return appUserService.findUserDetails(ids);
     }
 
     @GetMapping("/{userId}/exists")

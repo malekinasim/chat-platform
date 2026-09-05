@@ -1,5 +1,6 @@
 package com.nasim.chat.client.service.impl;
 
+import com.nasim.chat.client.model.dto.DirectoryUser;
 import com.nasim.chat.client.service.UserDirectoryClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,7 +45,7 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
 
     @Override
     public List<String> findAllValidMembers(List<String> memberIds, String accessToken) {
-        return userServiceClient.post()
+        List<String> response = userServiceClient.post()
                 .uri("/internal/users/active/ids/filter")
                 .body(memberIds)
                 .headers(headers ->
@@ -52,5 +53,17 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
+        return response == null ? List.of() : response;
+    }
+
+    @Override
+    public List<DirectoryUser> findUserDetails(List<String> userIds, String accessToken) {
+        List<DirectoryUser> response = userServiceClient.post()
+                .uri("/internal/users/details")
+                .body(userIds)
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<DirectoryUser>>() {});
+        return response == null ? List.of() : response;
     }
 }
