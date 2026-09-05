@@ -25,9 +25,7 @@ public class PrivateReceiverResolver implements ReceiverResolver {
 
     @Override
     public List<String> resolveReceiverIds(SendMessageCommand command,JwtAuthenticationToken authentication) {
-        String accessToken =
-                authentication.getToken().getTokenValue();
-        if (!userDirectoryClient.userExists(command.receiver(),accessToken)) {
+        if (!userDirectoryClient.userExists(command.receiver())) {
             throw new RecipientNotFoundException(command.receiver());
         }
 

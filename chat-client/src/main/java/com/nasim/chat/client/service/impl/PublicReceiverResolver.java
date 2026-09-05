@@ -23,8 +23,6 @@ public class PublicReceiverResolver implements ReceiverResolver {
     @Override
     public List<String> resolveReceiverIds(SendMessageCommand command,
                                            JwtAuthenticationToken authentication ) {
-        String accessToken =
-                authentication.getToken().getTokenValue();
-        return userDirectoryClient.findAllActiveUserIds(accessToken);
+        return userDirectoryClient.findAllActiveUserIds();
     }
 }

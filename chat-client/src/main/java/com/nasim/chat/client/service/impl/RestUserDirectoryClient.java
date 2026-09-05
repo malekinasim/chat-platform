@@ -20,11 +20,11 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public List<String> findAllActiveUserIds(String accessToken) {
+    public List<String> findAllActiveUserIds() {
         List<String> response= userServiceClient.get()
                 .uri("/internal/users/active/ids")
                 .headers(headers ->
-                        headers.setBearerAuth(accessToken)
+                        headers.setBearerAuth(SecurityUtils.authenticatedAccessToken())
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
@@ -34,10 +34,10 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public boolean userExists(String receiver, String accessToken) {
+    public boolean userExists(String receiver) {
         Boolean response = userServiceClient.get()
                 .uri("/internal/users/{receiver}/exists", receiver)
-                .headers(headers -> headers.setBearerAuth(accessToken))
+                .headers(headers -> headers.setBearerAuth(SecurityUtils.authenticatedAccessToken()))
                 .retrieve()
                 .body(Boolean.class);
 

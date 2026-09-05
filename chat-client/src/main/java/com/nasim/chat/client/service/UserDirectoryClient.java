@@ -5,8 +5,8 @@ import com.nasim.chat.client.model.dto.DirectoryUser;
 import java.util.List;
 
 public interface UserDirectoryClient {
-    List<String> findAllActiveUserIds(String accessToken);
-    boolean userExists(String receiver,String accessToken);
+    List<String> findAllActiveUserIds();
+    boolean userExists(String receiver);
 
     List<String> findAllValidMembers(List<String> memberIds);
 
