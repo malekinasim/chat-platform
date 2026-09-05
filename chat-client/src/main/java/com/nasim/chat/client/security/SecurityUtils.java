@@ -4,6 +4,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.security.Principal;
 
@@ -39,6 +40,16 @@ public class SecurityUtils {
         }
 
         return principal.getName();
+    }
+
+    public static String authenticatedAccessToken() {
+        Authentication authentication = authenticatedUerInfo();
+        if (!(authentication instanceof JwtAuthenticationToken jwtAuthentication)) {
+            throw new AuthenticationCredentialsNotFoundException(
+                    "A JWT-authenticated user is required"
+            );
+        }
+        return jwtAuthentication.getToken().getTokenValue();
     }
 
 }

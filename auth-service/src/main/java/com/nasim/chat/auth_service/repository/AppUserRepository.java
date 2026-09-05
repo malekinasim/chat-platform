@@ -2,6 +2,7 @@ package com.nasim.chat.auth_service.repository;
 
 import com.nasim.chat.auth_service.model.entity.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,7 @@ public interface AppUserRepository extends JpaRepository<AppUser,Long> {
 
     List<AppUser> findAllByActiveTrue();
 
+    @EntityGraph(attributePaths = "roles")
     List<AppUser> findAllByIdInAndActiveTrue(List<Long> ids);
 
     boolean existsByIdAndActiveTrue(Long id);

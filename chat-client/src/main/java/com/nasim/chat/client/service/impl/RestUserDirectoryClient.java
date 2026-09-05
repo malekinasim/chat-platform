@@ -1,5 +1,7 @@
 package com.nasim.chat.client.service.impl;
 
+import com.nasim.chat.client.model.dto.DirectoryUser;
+import com.nasim.chat.client.security.SecurityUtils;
 import com.nasim.chat.client.service.UserDirectoryClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -18,11 +20,11 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public List<String> findAllActiveUserIds(String accessToken) {
+    public List<String> findAllActiveUserIds() {
         List<String> response= userServiceClient.get()
                 .uri("/internal/users/active/ids")
                 .headers(headers ->
-                        headers.setBearerAuth(accessToken)
+                        headers.setBearerAuth(SecurityUtils.authenticatedAccessToken())
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
@@ -32,10 +34,10 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public boolean userExists(String receiver, String accessToken) {
+    public boolean userExists(String receiver) {
         Boolean response = userServiceClient.get()
                 .uri("/internal/users/{receiver}/exists", receiver)
-                .headers(headers -> headers.setBearerAuth(accessToken))
+                .headers(headers -> headers.setBearerAuth(SecurityUtils.authenticatedAccessToken()))
                 .retrieve()
                 .body(Boolean.class);
 
@@ -43,14 +45,26 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public List<String> findAllValidMembers(List<String> memberIds, String accessToken) {
-        return userServiceClient.post()
+    public List<String> findAllValidMembers(List<String> memberIds) {
+        List<String> response = userServiceClient.post()
                 .uri("/internal/users/active/ids/filter")
                 .body(memberIds)
                 .headers(headers ->
-                        headers.setBearerAuth(accessToken)
+                        headers.setBearerAuth(SecurityUtils.authenticatedAccessToken())
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
+        return response == null ? List.of() : response;
+    }
+
+    @Override
+    public List<DirectoryUser> findUserDetails(List<String> userIds) {
+        List<DirectoryUser> response = userServiceClient.post()
+                .uri("/internal/users/details")
+                .body(userIds)
+                .headers(headers -> headers.setBearerAuth(SecurityUtils.authenticatedAccessToken()))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<DirectoryUser>>() {});
+        return response == null ? List.of() : response;
     }
 }

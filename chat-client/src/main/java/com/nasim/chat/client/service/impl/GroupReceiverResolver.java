@@ -31,8 +31,6 @@ public class GroupReceiverResolver implements ReceiverResolver {
         if (memberIds.isEmpty()) {
             return List.of();
         }
-        String accessToken =
-                authentication.getToken().getTokenValue();
-        return userDirectoryClient.findAllValidMembers(memberIds,accessToken);
+        return userDirectoryClient.findAllValidMembers(memberIds);
     }
 }
