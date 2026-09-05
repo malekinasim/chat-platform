@@ -8,7 +8,7 @@ public interface UserDirectoryClient {
     List<String> findAllActiveUserIds(String accessToken);
     boolean userExists(String receiver,String accessToken);
 
-    List<String> findAllValidMembers(List<String> memberIds, String accessToken);
+    List<String> findAllValidMembers(List<String> memberIds);
 
     List<DirectoryUser> findUserDetails(List<String> userIds);
 }

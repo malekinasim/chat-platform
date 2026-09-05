@@ -45,12 +45,12 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
     }
 
     @Override
-    public List<String> findAllValidMembers(List<String> memberIds, String accessToken) {
+    public List<String> findAllValidMembers(List<String> memberIds) {
         List<String> response = userServiceClient.post()
                 .uri("/internal/users/active/ids/filter")
                 .body(memberIds)
                 .headers(headers ->
-                        headers.setBearerAuth(accessToken)
+                        headers.setBearerAuth(SecurityUtils.authenticatedAccessToken())
                 )
                 .retrieve()
                 .body( new ParameterizedTypeReference<List<String>>() {});
