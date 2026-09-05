@@ -43,12 +43,12 @@ class RoomPresenceServiceImplTest {
         when(groupMembershipService.hasActiveMembership("requester", "room")).thenReturn(true);
         when(roomPresenceStore.onlineUsers("room")).thenReturn(Set.of());
 
-        RoomPresenceResponse response = service.getRoomPresence("room", "requester", "token");
+        RoomPresenceResponse response = service.getRoomPresence("room", "requester");
 
         assertThat(response.roomCode()).isEqualTo("room");
         assertThat(response.onlineUsers()).isEmpty();
         assertThat(response.onlineUserCount()).isZero();
-        verify(userDirectoryClient, never()).findUserDetails(org.mockito.ArgumentMatchers.anyList(), org.mockito.ArgumentMatchers.anyString());
+        verify(userDirectoryClient, never()).findUserDetails(org.mockito.ArgumentMatchers.anyList());
         verify(chatUserProfileRepository, never()).findAllByUserIdIn(org.mockito.ArgumentMatchers.anyCollection());
     }
 
@@ -56,7 +56,7 @@ class RoomPresenceServiceImplTest {
     void composesUsersInIdOrderUsingOneBatchCallAndOneBatchQuery() {
         when(groupMembershipService.hasActiveMembership("requester", "room")).thenReturn(true);
         when(roomPresenceStore.onlineUsers("room")).thenReturn(Set.of("2", "1", "3"));
-        when(userDirectoryClient.findUserDetails(List.of("1", "2", "3"), "token"))
+        when(userDirectoryClient.findUserDetails(List.of("1", "2", "3")))
                 .thenReturn(List.of(
                         new DirectoryUser("2", "second", "auth-2", null, null, null, Set.of()),
                         new DirectoryUser("1", "first", "auth-1", null, null, null, Set.of())
@@ -66,7 +66,7 @@ class RoomPresenceServiceImplTest {
         when(chatUserProfileRepository.findAllByUserIdIn(List.of("1", "2", "3")))
                 .thenReturn(List.of(replacement, nullAvatar));
 
-        RoomPresenceResponse response = service.getRoomPresence("room", "requester", "token");
+        RoomPresenceResponse response = service.getRoomPresence("room", "requester");
 
         assertThat(response.onlineUsers())
                 .extracting("userId", "username", "avatarUrl")
@@ -75,7 +75,7 @@ class RoomPresenceServiceImplTest {
                         org.assertj.core.groups.Tuple.tuple("2", "second", "chat-2")
                 );
         assertThat(response.onlineUserCount()).isEqualTo(2);
-        verify(userDirectoryClient).findUserDetails(List.of("1", "2", "3"), "token");
+        verify(userDirectoryClient).findUserDetails(List.of("1", "2", "3"));
         verify(chatUserProfileRepository).findAllByUserIdIn(List.of("1", "2", "3"));
     }
 
@@ -83,17 +83,17 @@ class RoomPresenceServiceImplTest {
     void toleratesNullDirectoryResponse() {
         when(groupMembershipService.hasActiveMembership("requester", "room")).thenReturn(true);
         when(roomPresenceStore.onlineUsers("room")).thenReturn(Set.of("1"));
-        when(userDirectoryClient.findUserDetails(List.of("1"), "token")).thenReturn(null);
+        when(userDirectoryClient.findUserDetails(List.of("1"))).thenReturn(null);
         when(chatUserProfileRepository.findAllByUserIdIn(List.of("1"))).thenReturn(List.of());
 
-        assertThat(service.getRoomPresence("room", "requester", "token").onlineUsers()).isEmpty();
+        assertThat(service.getRoomPresence("room", "requester").onlineUsers()).isEmpty();
     }
 
     @Test
     void rejectsRequesterWhoIsNotAnActiveRoomMemberBeforeReadingPresence() {
         when(groupMembershipService.hasActiveMembership("requester", "room")).thenReturn(false);
 
-        assertThatThrownBy(() -> service.getRoomPresence("room", "requester", "token"))
+        assertThatThrownBy(() -> service.getRoomPresence("room", "requester"))
                 .isInstanceOf(AuthorizationDeniedException.class);
         verify(roomPresenceStore, never()).onlineUsers("room");
     }

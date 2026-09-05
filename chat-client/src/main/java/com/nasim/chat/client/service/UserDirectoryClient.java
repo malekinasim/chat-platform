@@ -10,5 +10,5 @@ public interface UserDirectoryClient {
 
     List<String> findAllValidMembers(List<String> memberIds, String accessToken);
 
-    List<DirectoryUser> findUserDetails(List<String> userIds, String accessToken);
+    List<DirectoryUser> findUserDetails(List<String> userIds);
 }

@@ -37,7 +37,7 @@ public class RoomPresenceServiceImpl implements RoomPresenceService {
     }
 
     @Override
-    public RoomPresenceResponse getRoomPresence(String roomCode, String requesterId, String accessToken) {
+    public RoomPresenceResponse getRoomPresence(String roomCode, String requesterId) {
         if (!groupMembershipService.hasActiveMembership(requesterId, roomCode)) {
             throw new AuthorizationDeniedException("you don't have valid access right for this group");
         }
@@ -50,7 +50,7 @@ public class RoomPresenceServiceImpl implements RoomPresenceService {
             return new RoomPresenceResponse(roomCode, List.of());
         }
 
-        Map<String, DirectoryUser> directoryUsers = safeDirectoryUsers(userIds, accessToken).stream()
+        Map<String, DirectoryUser> directoryUsers = safeDirectoryUsers(userIds).stream()
                 .filter(user -> user != null && user.userId() != null)
                 .collect(Collectors.toMap(DirectoryUser::userId, Function.identity(), (first, ignored) -> first));
         Map<String, String> localAvatars = chatUserProfileRepository.findAllByUserIdIn(userIds).stream()
@@ -70,8 +70,8 @@ public class RoomPresenceServiceImpl implements RoomPresenceService {
         return new RoomPresenceResponse(roomCode, users);
     }
 
-    private List<DirectoryUser> safeDirectoryUsers(List<String> userIds, String accessToken) {
-        List<DirectoryUser> users = userDirectoryClient.findUserDetails(userIds, accessToken);
+    private List<DirectoryUser> safeDirectoryUsers(List<String> userIds) {
+        List<DirectoryUser> users = userDirectoryClient.findUserDetails(userIds);
         return users == null ? List.of() : users;
     }
 }
