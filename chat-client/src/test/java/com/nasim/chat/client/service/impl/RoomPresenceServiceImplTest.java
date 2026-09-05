@@ -58,8 +58,8 @@ class RoomPresenceServiceImplTest {
         when(roomPresenceStore.onlineUsers("room")).thenReturn(Set.of("2", "1", "3"));
         when(userDirectoryClient.findUserDetails(List.of("1", "2", "3"), "token"))
                 .thenReturn(List.of(
-                        new DirectoryUser("2", "second", "auth-2"),
-                        new DirectoryUser("1", "first", "auth-1")
+                        new DirectoryUser("2", "second", "auth-2", null, null, null, Set.of()),
+                        new DirectoryUser("1", "first", "auth-1", null, null, null, Set.of())
                 ));
         ChatUserProfile replacement = profile("2", "chat-2");
         ChatUserProfile nullAvatar = profile("1", null);
