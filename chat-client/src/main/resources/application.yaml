@@ -3,6 +3,11 @@ chat:
     host: ${CHAT_SERVER_HOST:localhost}
     port: ${CHAT_SERVER_PORT:8080}
 
+broker-relay:
+  host: ${RABBITMQ_HOST:localhost}
+  port: ${RABBITMQ_STOMP_PORT:61613}
+  username: ${RABBITMQ_USERNAME}
+  password: ${RABBITMQ_PASSWORD}
 server:
   port: ${SERVER_PORT:8082}
   servlet:
@@ -27,9 +32,18 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:chat_client_user}
     password: ${SPRING_DATASOURCE_PASSWORD:chat_client_password}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      temp:
+        use_jdbc_metadata_defaults: false
     show-sql: true
     properties:
       hibernate:

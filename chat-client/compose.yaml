@@ -15,7 +15,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  chat-message-broker:
+    build:
+      context: ./rabbitmq
+      dockerfile: Dockerfile
+    image: chat-platform/rabbitmq-stomp:local
+    container_name: chat-message-broker
 
+    environment:
+      RABBITMQ_DEFAULT_USER: ${CHAT_CLIENT_RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${CHAT_CLIENT_RABBITMQ_PASSWORD}
+
+    volumes:
+      - chat-message-broker-data:/var/lib/rabbitmq
+
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:61613:61613"
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
   chat-presence-redis:
     image: redis:7-alpine
     container_name: chat-presence-redis
@@ -42,7 +65,7 @@ services:
       dockerfile: chat-client/Dockerfile
     image: chat-platform/chat-client:local
     ports:
-      - "8082:8082"
+      - "8082-8083:8082"
     environment:
       SERVER_PORT: 8082
       CHAT_SERVER_HOST: chat-server
@@ -57,6 +80,10 @@ services:
       SECURITY_JWT_ISSUER: http://auth-service:8083
       SECURITY_JWT_AUDIENCE: chat-client
       AUTH_SERVICE_BASE_URL: http://auth-service:8083
+      RABBITMQ_HOST: chat-message-broker
+      RABBITMQ_STOMP_PORT: 61613
+      RABBITMQ_USERNAME: ${CHAT_CLIENT_RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${CHAT_CLIENT_RABBITMQ_PASSWORD}
     volumes:
       - ../dev-keys:/dev-keys:ro
     depends_on:
@@ -68,7 +95,14 @@ services:
         condition: service_started
       chat-presence-redis:
         condition: service_healthy
-
+      chat-message-broker:
+        condition: service_healthy
+    networks:
+      - chat-network
+networks:
+  chat-network:
+    driver: bridge
 volumes:
   chat-client-database-data:
   redis-insight-data:
+  chat-message-broker-data:
