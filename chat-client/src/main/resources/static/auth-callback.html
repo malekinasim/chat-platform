@@ -462,7 +462,7 @@
                 setStatus("Select a group first.", true);
                 return;
             }
-            if (text && publish(`/app/chat/room/${selectedGroupCode}`, text)) {
+            if (text && publish(`/app/chat/room.${selectedGroupCode}`, text)) {
                 input.value = "";
                 input.focus();
             }

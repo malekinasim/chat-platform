@@ -18,7 +18,7 @@ import org.springframework.security.messaging.context.SecurityContextChannelInte
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    public static final String ROOM_TOPIC_PREFIX = "/topic/room/";
+    public static final String ROOM_TOPIC_PREFIX = "/topic/room.";
     public static final String PRIVATE_TOPIC_PREFIX = "/user/queue/private";
     private  final String rabbitMQHost;
     private  final int rabbitMQPort;

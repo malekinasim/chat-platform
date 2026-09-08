@@ -23,11 +23,11 @@ public class GroupWebSocketDeliveryHandler implements WebSocketDeliveryHandler {
 
     @Override
     public void deliver(PublishedChatMessage message) {
-        System.out.println("Publishing to /topic/room/%s ".formatted(message.room()) + message);
+        System.out.println("Publishing to /topic/room.%s ".formatted(message.room()) + message);
         MessageHeaders headers = new MessageHeaders(Map.of("chatMessageId", message.messageId()));
 
         simpMessagingTemplate.convertAndSend(
-                "/topic/room/%s".formatted(message.room()),
+                "/topic/room.%s".formatted(message.room()),
                 message,
                 headers
         );
