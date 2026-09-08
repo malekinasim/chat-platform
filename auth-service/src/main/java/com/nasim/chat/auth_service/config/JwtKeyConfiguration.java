@@ -26,24 +26,8 @@ public class JwtKeyConfiguration {
             );
       }
     @Bean
-    public RSAPublicKey jwtPublicKey(@Value("${security.jwt.public-key-file}")
-                                    Resource publicKeyResource) throws IOException {
-        return RsaKeyConverters.x509().convert(publicKeyResource.getInputStream());
-    }
-
-    @Bean
     public JwtEncoder jwtEncoder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 
         return NimbusJwtEncoder.withKeyPair(publicKey,privateKey).build();
-    }
-    @Bean
-    public JwtDecoder jwtDecoder(RSAPublicKey jwtPublicKey ,
-                                 @Value("${security.jwt.issuer}") String issuer,
-                                 @Value("${security.jwt.audience}") String audience) {
-
-        return JwtDecoders.create(
-                jwtPublicKey,
-                issuer,audience
-        );
     }
 }

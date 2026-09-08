@@ -1,5 +1,6 @@
 package com.nasim.chat.auth_service.model.entity;
 
+import com.nasim.chat.auth_service.model.convertor.AudienceListConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,8 +14,8 @@ public class AppRegisteredClient extends BaseEntity<Integer>{
 
     @Column(name = "client_id", nullable = false, unique = true)
     private String clientId;
-
-    @Column(nullable = false)
+    @Convert(converter = AudienceListConverter.class)
+    @Column(name = "audience", nullable = false)
     private String audience;
 
     @Column(name = "callback_url", nullable = false)
