@@ -4,12 +4,12 @@ import com.nasim.chat.security.jwt.convertor.JwtRoleConverter;
 import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.resolver.CookieBearerTokenResolver;
-import jakarta.servlet.http.HttpServletRequest;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
@@ -21,7 +21,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -90,6 +89,7 @@ public class JwtResourceServerConfiguration {
 
         };
     }
+    @ConditionalOnMissingBean(CorsConfigurationSource.class)
     CorsConfigurationSource defaultCorsConfiguration() {
         return (request -> {
             return new UrlBasedCorsConfigurationSource().getCorsConfiguration(request);
@@ -97,7 +97,7 @@ public class JwtResourceServerConfiguration {
     }
 
     @Bean
-    @Order(2)
+    @Order(1)
     public SecurityFilterChain defaultSecurityFilterChain(
             HttpSecurity http,
             JwtDecoder jwtDecoder,

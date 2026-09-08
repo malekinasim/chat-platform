@@ -35,6 +35,16 @@ public class SecurityConfig {
         return http
                 .cors(cors ->
                         cors.configurationSource(corsConfigurationSource)
+                ).authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                "/auth/login",
+                                "/login/**",
+                                "/oauth2/**",
+                                "/api/auth/token/**",
+                                "/api/auth/onboarding/complete",
+                                "/actuator/health"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
