@@ -5,6 +5,7 @@ import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.resolver.CookieBearerTokenResolver;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -89,11 +90,9 @@ public class JwtResourceServerConfiguration {
 
         };
     }
-    @ConditionalOnMissingBean(CorsConfigurationSource.class)
-    CorsConfigurationSource defaultCorsConfiguration() {
-        return (request -> {
-            return new UrlBasedCorsConfigurationSource().getCorsConfiguration(request);
-        });
+    ResourceServerCorsConfigurationSource
+    defaultCorsConfiguration() {
+        return request -> null;
     }
 
     @Bean
@@ -104,13 +103,13 @@ public class JwtResourceServerConfiguration {
             BearerTokenResolver bearerTokenResolver,
             JwtAuthenticationConverter jwtAuthenticationConverter,
             ObjectProvider<ResourceServerAuthorizationRules> rulesProvider,
-            ObjectProvider<CorsConfigurationSource> corsConfigurationProvider
+            ObjectProvider<ResourceServerCorsConfigurationSource> corsConfigurationProvider
             )
             throws Exception {
 
         ResourceServerAuthorizationRules rules =
                 rulesProvider.getIfAvailable(this::defaultAuthorizationRules);
-        CorsConfigurationSource configuration=corsConfigurationProvider.getIfAvailable(this::defaultCorsConfiguration);
+        ResourceServerCorsConfigurationSource configurationsrc=corsConfigurationProvider.getIfAvailable(this::defaultCorsConfiguration);
 
         http.authorizeHttpRequests(authorize -> {
                     rules.configure(authorize);
@@ -124,7 +123,7 @@ public class JwtResourceServerConfiguration {
                                         jwtAuthenticationConverter
                                 )
                         )
-                ).cors(cors -> cors.configurationSource(configuration));
+                ).cors(cors -> cors.configurationSource(configurationsrc));
 
         return http.build();
     }
