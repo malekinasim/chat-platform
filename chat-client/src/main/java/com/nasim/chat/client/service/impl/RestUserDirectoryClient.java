@@ -35,6 +35,7 @@ public class RestUserDirectoryClient implements UserDirectoryClient {
 
     @Override
     public boolean userExists(String receiver) {
+
         Boolean response = userServiceClient.get()
                 .uri("/internal/users/{receiver}/exists", receiver)
                 .headers(headers -> headers.setBearerAuth(SecurityUtils.authenticatedAccessToken()))

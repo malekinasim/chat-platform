@@ -13,6 +13,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.security.messaging.context.SecurityContextChannelInterceptor;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -70,6 +71,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableStompBrokerRelay("/topic", "/queue")
                 .setRelayHost(rabbitMQHost)
                 .setRelayPort(rabbitMQPort)
+                .setVirtualHost("/")
                 .setClientLogin(rabbitMQUsername)
                 .setClientPasscode(rabbitMQPassword)
                 .setSystemLogin(rabbitMQUsername)
@@ -83,7 +85,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authenticationInterceptor, roomSubscriptionAuthorizationInterceptor);
+        registration.interceptors(authenticationInterceptor,
+                new SecurityContextChannelInterceptor(),
+                roomSubscriptionAuthorizationInterceptor);
     }
 
     @Override

@@ -65,7 +65,7 @@ services:
       dockerfile: chat-client/Dockerfile
     image: chat-platform/chat-client:local
     ports:
-      - "8082-8083:8082"
+      - "8082:8082"
     environment:
       SERVER_PORT: 8082
       CHAT_SERVER_HOST: chat-server
@@ -97,11 +97,6 @@ services:
         condition: service_healthy
       chat-message-broker:
         condition: service_healthy
-    networks:
-      - chat-network
-networks:
-  chat-network:
-    driver: bridge
 volumes:
   chat-client-database-data:
   redis-insight-data:
