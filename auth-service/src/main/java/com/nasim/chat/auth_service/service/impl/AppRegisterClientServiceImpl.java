@@ -5,6 +5,7 @@ import com.nasim.chat.auth_service.repository.AppRegisterClientRepository;
 import com.nasim.chat.auth_service.service.AppRegisterClientService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,7 +24,7 @@ public class AppRegisterClientServiceImpl implements AppRegisterClientService {
 
         AppRegisteredClient client = new AppRegisteredClient();
         client.setClientId(clientId);
-        client.setAudience(audience);
+        client.setAudience(audience!=null && !audience.isEmpty() ? List.of(audience.split(",")): null);
         client.setCallbackUrl(callbackUrl);
         client.setOnboardingUrl(onboardingUrl);
         client.setOrigin(originUrl);

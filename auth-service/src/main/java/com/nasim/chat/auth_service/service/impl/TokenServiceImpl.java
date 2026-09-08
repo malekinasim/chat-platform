@@ -146,7 +146,7 @@ public class TokenServiceImpl implements TokenService {
             String userId = oldRefreshToken.getUser().getId().toString();
             String clientId = oldRefreshToken.getClient().getClientId();
             List<String> roles = oldRefreshToken.getUser().getRoles().stream().map(Role::getName).toList();
-            List<String> allowedAudiences = List.of(oldRefreshToken.getClient().getAudience());
+            List<String> allowedAudiences = oldRefreshToken.getClient().getAudience();
             String accessToken = this.generateAccessToken(
                     userId, roles, allowedAudiences
             );
@@ -180,7 +180,7 @@ public class TokenServiceImpl implements TokenService {
             String accessToken = this.generateAccessToken(
                     user.getId().toString(),
                     user.getRoles().stream().map(Role::getName).toList(),
-                    List.of(client.getAudience())
+                    client.getAudience()
             );
             GeneratedRefreshToken refreshToken = this.generateRefreshToken();
 

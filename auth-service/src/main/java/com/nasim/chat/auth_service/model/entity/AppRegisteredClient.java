@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "registered_client",uniqueConstraints = {@UniqueConstraint(name = "uk_client_id",columnNames = "client_id")})
 @Getter
@@ -16,7 +18,7 @@ public class AppRegisteredClient extends BaseEntity<Integer>{
     private String clientId;
     @Convert(converter = AudienceListConverter.class)
     @Column(name = "audience", nullable = false)
-    private String audience;
+    private List<String> audience;
 
     @Column(name = "callback_url", nullable = false)
     private String callbackUrl;

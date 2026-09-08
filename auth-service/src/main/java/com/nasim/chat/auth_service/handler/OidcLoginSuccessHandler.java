@@ -92,7 +92,7 @@ public class OidcLoginSuccessHandler
                     internalUser.id(),
                     client.getClientId(),
                     internalUser.roles(),
-                    List.of( client.getAudience())
+                    client.getAudience()
             );
 
             removeOIDCLoginData(response, request);
