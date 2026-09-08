@@ -39,8 +39,5 @@ security:
     private-key-file: file:../dev-keys/private.pem
     issuer: http://auth-service:8083
     audience: auth_server
-    issued-audiences:
-      - chat-client
-      - auth-service
   cookie:
     secure: ${COOKIE_SECURE:false}

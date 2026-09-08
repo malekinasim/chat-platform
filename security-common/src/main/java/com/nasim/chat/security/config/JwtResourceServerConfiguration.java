@@ -55,7 +55,7 @@ public class JwtResourceServerConfiguration {
         );
     }
 
-    @Bean
+    @Bean(defaultCandidate = false)
     public RSAPublicKey jwtPublicKey(@Value("${security.jwt.public-key-file}") Resource publicKeyResource) throws IOException {
         return RsaKeyConverters.x509()
                 .convert(publicKeyResource.getInputStream());

@@ -2,11 +2,13 @@ package com.nasim.chat.auth_service.config;
 
 
 
+import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.security.converter.RsaKeyConverters;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
@@ -33,5 +35,15 @@ public class JwtKeyConfiguration {
     public JwtEncoder jwtEncoder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
 
         return NimbusJwtEncoder.withKeyPair(publicKey,privateKey).build();
+    }
+    @Bean
+    public JwtDecoder jwtDecoder(RSAPublicKey jwtPublicKey ,
+                                 @Value("${security.jwt.issuer}") String issuer,
+                                 @Value("${security.jwt.audience}") String audience) {
+
+        return JwtDecoders.create(
+                jwtPublicKey,
+                issuer,audience
+        );
     }
 }
