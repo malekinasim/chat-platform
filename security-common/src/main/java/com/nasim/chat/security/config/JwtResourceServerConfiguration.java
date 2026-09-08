@@ -5,12 +5,9 @@ import com.nasim.chat.security.jwt.decoder.JwtDecoders;
 import com.nasim.chat.security.jwt.resolver.CompositeBearerTokenResolver;
 import com.nasim.chat.security.jwt.resolver.CookieBearerTokenResolver;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
@@ -22,8 +19,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
@@ -95,6 +90,15 @@ public class JwtResourceServerConfiguration {
         return request -> null;
     }
 
+    ResourceServerSecurityMatcher
+    defaultSecurityMatcher() {
+        return request -> {
+            // No public or role-specific endpoints by default.
+
+        };
+    }
+
+
     @Bean
     @Order(1)
     public SecurityFilterChain defaultSecurityFilterChain(
@@ -102,11 +106,15 @@ public class JwtResourceServerConfiguration {
             JwtDecoder jwtDecoder,
             BearerTokenResolver bearerTokenResolver,
             JwtAuthenticationConverter jwtAuthenticationConverter,
+            ObjectProvider<ResourceServerSecurityMatcher> securityMatcherProvider,
             ObjectProvider<ResourceServerAuthorizationRules> rulesProvider,
             ObjectProvider<ResourceServerCorsConfigurationSource> corsConfigurationProvider
             )
             throws Exception {
+        ResourceServerSecurityMatcher securityMatcher =
+                securityMatcherProvider.getIfAvailable(this::defaultSecurityMatcher);
 
+        securityMatcher.configure(http);
         ResourceServerAuthorizationRules rules =
                 rulesProvider.getIfAvailable(this::defaultAuthorizationRules);
         ResourceServerCorsConfigurationSource configurationsrc=corsConfigurationProvider.getIfAvailable(this::defaultCorsConfiguration);

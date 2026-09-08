@@ -1,11 +1,15 @@
 package com.nasim.chat.auth_service.model.convertor;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AudienceListConverter implements jakarta.persistence.AttributeConverter<List<String>, String>{
+@Converter
+public class AudienceListConverter implements AttributeConverter<List<String>, String>{
     @Override
     public String convertToDatabaseColumn(List<String> audiences) {
         if (audiences == null || audiences.isEmpty()) {

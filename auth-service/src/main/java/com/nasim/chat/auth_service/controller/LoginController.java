@@ -27,7 +27,7 @@ public class LoginController {
             HttpServletResponse response
     ) throws IOException {
 
-
+         System.out.println("app_client_id: "+appClientId);
         AppRegisteredClient appRegisterClient= registerClientService.
                 findActiveClient(appClientId).orElseThrow(
                         ()-> new CustomException("invalid client id ","INVALID_CLIENT_ID")

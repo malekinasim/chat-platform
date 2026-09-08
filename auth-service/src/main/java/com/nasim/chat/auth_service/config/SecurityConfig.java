@@ -3,7 +3,6 @@ package com.nasim.chat.auth_service.config;
 import com.nasim.chat.auth_service.handler.OidcLoginSuccessHandler;
 import com.nasim.chat.auth_service.service.AppRegisterClientService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,7 +14,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
+import com.nasim.chat.security.config.ResourceServerSecurityMatcher;
 @Component
 @EnableWebSecurity
 public class SecurityConfig {
@@ -25,7 +24,6 @@ public class SecurityConfig {
     public SecurityConfig(OidcLoginSuccessHandler oidcLoginSuccessHandler) {
         this.oidcLoginSuccessHandler = oidcLoginSuccessHandler;
     }
-
     @Bean
     @Order(2)
     public SecurityFilterChain securityFilterChain(
