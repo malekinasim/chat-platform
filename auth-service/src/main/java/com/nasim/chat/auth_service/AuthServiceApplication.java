@@ -5,8 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
-@SpringBootApplication
+
 @Import({JwtResourceServerConfiguration.class,})
+@SpringBootApplication(scanBasePackages = {"com.nasim.chat.security.config", "com.nasim.chat.security.jwt"})
 public class AuthServiceApplication {
 
 	public static void main(String[] args) {
