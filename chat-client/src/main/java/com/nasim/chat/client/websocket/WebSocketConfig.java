@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.scheduling.TaskScheduler;
@@ -14,6 +15,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.security.messaging.context.SecurityContextChannelInterceptor;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -81,6 +84,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setUserRegistryBroadcast( "/topic/simp-user-registry")
                 .setUserDestinationBroadcast(  "/topic/unresolved-user-destination")
                 .setTaskScheduler(messageBrokerTaskScheduler);
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        WebSocketMessageBrokerConfigurer.super.addArgumentResolvers(argumentResolvers);
     }
 
     @Override
