@@ -75,8 +75,6 @@ services:
     image: chat-platform/chat-client:local
     environment:
       SERVER_PORT: 8082
-      CHAT_SERVER_HOST: chat-server
-      CHAT_SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://chat-client-database:5432/${CHAT_CLIENT_POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${CHAT_CLIENT_POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${CHAT_CLIENT_POSTGRES_PASSWORD}
@@ -96,8 +94,6 @@ services:
     depends_on:
       chat-client-database:
         condition: service_healthy
-      chat-server:
-        condition: service_started
       auth-service:
         condition: service_started
       chat-presence-redis:
