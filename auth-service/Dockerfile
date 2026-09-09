@@ -13,7 +13,6 @@ COPY /dev-keys/public.pem ./dev-keys/public.pem
 COPY /dev-keys/private.pem ./dev-keys/private.pem
 COPY auth-service/pom.xml auth-service/pom.xml
 COPY chat-client/pom.xml chat-client/pom.xml
-COPY chat-server/pom.xml chat-server/pom.xml
 COPY security-common/pom.xml security-common/pom.xml
 
 RUN chmod +x mvnw
