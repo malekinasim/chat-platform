@@ -16,21 +16,21 @@ public class MessageListenerImpl implements MessageListener{
         this.clientRegistryService = clientRegistryService;
     }
 
-    @Override
-    public void dispatch(PublishedChatMessage publishedChatMessage) {
-        for (ClientConnection client :  clientRegistryService.getClients()) {
-            try {
-                client.send(publishedChatMessage);
-            } catch (IOException e) {
-                clientRegistryService.unregister(client);
 
-                System.out.println(
-                        "Could not send message to "
-                                + client.getInetSocketAddress()
-                                + ": "
-                                + e.getMessage()
-                );
-            }
+    @Override
+    public void dispatch(
+            PublishedChatMessage message,
+            ClientConnection sourceClient
+    ) {
+        try {
+            sourceClient.send(message);
+        } catch (IOException exception) {
+            clientRegistryService.unregister(sourceClient);
+
+            throw new IllegalStateException(
+                    "Could not return message to source client",
+                    exception
+            );
         }
     }
 }

@@ -22,7 +22,7 @@ public class ClientHandlerImpl implements ClientHandler{
         try {
             while (client.isOpen()) {
                 PublishedChatMessage message = client.receive();
-                messageListener.dispatch( message);
+                messageListener.dispatch( message,client);
             }
         } catch (EOFException e) {
             System.out.println(
