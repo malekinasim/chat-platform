@@ -9,7 +9,7 @@ import com.nasim.chat.client.service.GroupMembershipService;
 import com.nasim.chat.client.service.MessageReceiverService;
 import com.nasim.chat.client.service.MessageService;
 import com.nasim.chat.client.service.impl.ReceiverResolveRegistry;
-import com.nasim.chat.client.socket.client.ChatMessageTransport;
+import com.nasim.chat.client.handler.MessageDispatcher;
 import com.nasim.chat.model.dto.ChatGroupDto;
 import com.nasim.chat.model.dto.ChatMessageDto;
 import com.nasim.chat.model.dto.MessageDeliveredCommand;
@@ -35,14 +35,14 @@ import java.util.List;
 
 @RestController
 public class ChatBrowserController {
-    private final ChatMessageTransport chatMessageTransport;
+    private final MessageDispatcher messageDispatcher;
     private final SimpUserRegistry simpUserRegistry;
     private final GroupMembershipService groupMembershipService;
     private final ReceiverResolveRegistry receiverResolverRegistry;
     private final MessageService messageService;
     private final MessageReceiverService messageReceiverService;
-    public ChatBrowserController(ChatMessageTransport chatMessageTransport, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService, ReceiverResolveRegistry receiverResolverRegistry, MessageService messageService, MessageReceiverService messageReceiverService) {
-        this.chatMessageTransport = chatMessageTransport;
+    public ChatBrowserController(MessageDispatcher messageDispatcher, SimpUserRegistry simpUserRegistry, GroupMembershipService groupMembershipService, ReceiverResolveRegistry receiverResolverRegistry, MessageService messageService, MessageReceiverService messageReceiverService) {
+        this.messageDispatcher = messageDispatcher;
         this.simpUserRegistry = simpUserRegistry;
         this.groupMembershipService = groupMembershipService;
         this.receiverResolverRegistry = receiverResolverRegistry;
@@ -82,7 +82,7 @@ public class ChatBrowserController {
     }
     private void sendMessage(SendMessageCommand command, List<String> receiverIds) {
         Message savedMessage = messageService.saveTextMessage(command, receiverIds);
-        chatMessageTransport.publish(MessageMapper.toPublishedMessage(savedMessage, command));
+        messageDispatcher.dispatch(MessageMapper.toPublishedMessage(savedMessage, command));
     }
 
     @MessageMapping("/chat/messages/delivered")

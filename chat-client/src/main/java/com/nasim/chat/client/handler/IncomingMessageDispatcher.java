@@ -1,8 +1,5 @@
-package com.nasim.chat.client.socket.listener;
+package com.nasim.chat.client.handler;
 
-import com.nasim.chat.client.handler.Handler;
-import com.nasim.chat.client.handler.IncomingContentHandler;
-import com.nasim.chat.client.handler.WebSocketDeliveryHandler;
 import com.nasim.chat.model.dto.PublishedChatMessage;
 import com.nasim.chat.model.dto.MessageContentType;
 import com.nasim.chat.model.dto.DeliveryType;
@@ -12,9 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 @Component
 public class IncomingMessageDispatcher
-        implements MessageListener {
+        implements MessageDispatcher {
 
     private final Map<MessageContentType, IncomingContentHandler> contentHandlers;
     private final Map<DeliveryType, WebSocketDeliveryHandler>
